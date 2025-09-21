@@ -1,1 +1,1 @@
-# GymBuddy.lk
+# SupremeFitness.lk
