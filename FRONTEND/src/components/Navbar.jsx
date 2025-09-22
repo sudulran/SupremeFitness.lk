@@ -16,7 +16,7 @@ const Navbar = () => {
     const storedUser = localStorage.getItem('user');
     const parsedUser = storedUser ? JSON.parse(storedUser) : null;
     setUser(parsedUser);
-    console.log('Current user:', parsedUser?.name);
+    console.log('Current user:', parsedUser?.name || parsedUser);
   }, [location]);
 
   const handleLogout = () => {

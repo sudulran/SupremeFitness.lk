@@ -2,16 +2,25 @@ const mongoose = require('mongoose');
 
 const connectDB = async () => {
   try {
-    await mongoose.connect(process.env.MONGO_URI);
-    console.log('MongoDB connected');
+    const uri = process.env.MONGO_URI;
+
+    if (typeof uri !== 'string' || uri.trim() === '') {
+      console.error(
+        'Error: MONGO_URI environment variable is not set.\n' +
+          'Please add a `.env` file in the BACKEND folder with a line like:\n' +
+          'MONGO_URI="mongodb://localhost:27017/your-db-name"'
+      );
+      process.exit(1); // Exit so mongoose doesn't get undefined
+    }
+
+    // Connect to MongoDB (Mongoose v6+ doesn't need deprecated options)
+    await mongoose.connect(uri);
+
+    console.log('✅ MongoDB connected');
   } catch (err) {
-    console.error(err.message);
+    console.error('❌ MongoDB connection error:', err.message || err);
     process.exit(1);
   }
 };
 
 module.exports = connectDB;
-// This module exports a function to connect to MongoDB using Mongoose.
-// It uses an async function to handle the connection and logs success or error messages.
-// Make sure to set the MONGO_URI environment variable before running the application.
-// You can use this function in your main application file to establish the database connection.
