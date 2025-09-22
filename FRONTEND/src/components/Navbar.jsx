@@ -15,8 +15,8 @@ const Navbar = () => {
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
     const parsedUser = storedUser ? JSON.parse(storedUser) : null;
-  setUser(parsedUser);
-  console.log('Current user:', parsedUser);
+    setUser(parsedUser);
+    console.log('Current user:', parsedUser?.name || parsedUser);
   }, [location]);
 
   const handleLogout = () => {
