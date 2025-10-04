@@ -115,7 +115,7 @@ const AddProductModal = ({ open, onClose, onProductAdded }) => {
 
       setTimeout(() => {
         onClose();
-        navigate('/admin-product-management');
+        navigate('/admin-dashboard');
       }, 1000);
     } catch (error) {
       console.error('Error adding product:', error);

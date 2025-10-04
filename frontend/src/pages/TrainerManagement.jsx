@@ -26,6 +26,8 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import ScheduleIcon from '@mui/icons-material/Schedule';
 
+import Footer from '../components/Footer';
+
 function TrainerManagement() {
   const sidebarWidth = 10;
   const navigate = useNavigate();
@@ -120,6 +122,7 @@ function TrainerManagement() {
   }, [filteredTrainers, groupBy]);
 
   return (
+    <>
     <Box sx={{ display: 'flex' }}>
       <StoreAdminSidebar />
       <Box
@@ -266,6 +269,8 @@ function TrainerManagement() {
         />
       </Box>
     </Box>
+    <Footer />
+    </>
   );
 }
 

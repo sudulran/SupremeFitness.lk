@@ -23,6 +23,7 @@ import Reviews from './pages/Reviews';
 import AppointmentManagement from './pages/AppointmentManagement';
 import MyAppointments from './pages/MyAppointments';
 import AdminReviews from './pages/AdminReviews';
+import HomePage from './pages/HomePage'
 
 const AppRoutes = () => {
   const location = useLocation();
@@ -53,18 +54,12 @@ const AppRoutes = () => {
   return (
     <>
       <Navbar />
+      <div style={{ paddingTop: '60px' }}>
       <Routes>
         <Route
           path="/"
-          element={
-            isAuthenticated ? (
-              <Navigate to={getDashboardRoute()} />
-            ) : (
-              <Navigate to="/login" />
-            )
-          }
+          element={<HomePage />}
         />
-
         <Route
           path="/login"
           element={
@@ -221,7 +216,9 @@ const AppRoutes = () => {
             )
           }
         />
+        
       </Routes>
+      </div>
     </>
   );
 };

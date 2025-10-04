@@ -51,24 +51,32 @@ import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import axiosInstance from '../api/axiosInstance';
 
+import Footer from '../components/Footer';
+
 // Days order constant for grouping
 const daysOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
 // Helper to group slots by day of the week
-const groupSlotsByDay = (slots) => {
+const groupSlotsByDay = (slots = []) => {
   const grouped = {};
   daysOrder.forEach((d) => (grouped[d] = []));
   slots.forEach((slot) => {
-    if (grouped[slot.day]) grouped[slot.day].push(slot);
-    else grouped[slot.day] = [slot];
+    const day = slot?.day || 'Unknown';
+    if (grouped[day]) grouped[day].push(slot);
+    else grouped[day] = [slot];
   });
   return grouped;
 };
 
 // Enhanced trainer card component
-function TrainerCard({ trainer, slots, onBook, onContact, onManageRating, index }) {
+function TrainerCard({ trainer, slots = [], onBook, onContact, onManageRating, index }) {
   const grouped = useMemo(() => groupSlotsByDay(slots), [slots]);
-  const availableSlots = slots.filter(slot => slot.status !== 'booked' || slot.status === 'canceled').length;
+
+  // Count slots that are actually available (not booked and not canceled)
+  const availableSlots = slots.filter((slot) => {
+    const s = slot?.status || 'available';
+    return s !== 'booked' && s !== 'canceled';
+  }).length;
 
   return (
     <Zoom in={true} timeout={300 + index * 100}>
@@ -84,14 +92,14 @@ function TrainerCard({ trainer, slots, onBook, onContact, onManageRating, index 
           transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
           position: 'relative',
           overflow: 'visible',
-          '&:hover': { 
+          '&:hover': {
             boxShadow: '0 20px 40px rgba(25, 118, 210, 0.15)',
             transform: 'translateY(-8px)',
             borderColor: 'primary.main',
             '& .trainer-avatar': {
               transform: 'scale(1.1)',
-              boxShadow: '0 8px 25px rgba(25, 118, 210, 0.3)'
-            }
+              boxShadow: '0 8px 25px rgba(25, 118, 210, 0.3)',
+            },
           },
           '&:before': {
             content: '""',
@@ -100,11 +108,11 @@ function TrainerCard({ trainer, slots, onBook, onContact, onManageRating, index 
             left: 0,
             right: 0,
             height: 4,
-            background: trainer.available 
+            background: trainer?.available
               ? 'linear-gradient(90deg, #4caf50 0%, #81c784 100%)'
               : 'linear-gradient(90deg, #f44336 0%, #e57373 100%)',
-            borderRadius: '16px 16px 0 0'
-          }
+            borderRadius: '16px 16px 0 0',
+          },
         }}
       >
         <CardContent sx={{ pb: 1 }}>
@@ -112,24 +120,24 @@ function TrainerCard({ trainer, slots, onBook, onContact, onManageRating, index 
           <Stack direction="row" spacing={3} alignItems="center" mb={3}>
             <Box sx={{ position: 'relative' }}>
               <Avatar
-                src={trainer.imageUrl}
-                alt={trainer.name}
+                src={trainer?.imageUrl}
+                alt={trainer?.name}
                 className="trainer-avatar"
-                sx={{ 
-                  width: 80, 
-                  height: 80, 
+                sx={{
+                  width: 80,
+                  height: 80,
                   border: '3px solid',
-                  borderColor: trainer.available ? 'success.main' : 'error.main',
+                  borderColor: trainer?.available ? 'success.main' : 'error.main',
                   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                   fontSize: '2rem',
                   fontWeight: 700,
-                  background: trainer.available 
+                  background: trainer?.available
                     ? 'linear-gradient(135deg, #4caf50, #81c784)'
                     : 'linear-gradient(135deg, #f44336, #e57373)',
-                  color: 'white'
+                  color: 'white',
                 }}
               >
-                {trainer.name?.[0]}
+                {trainer?.name?.[0] || 'T'}
               </Avatar>
               <Badge
                 badgeContent={availableSlots}
@@ -142,37 +150,37 @@ function TrainerCard({ trainer, slots, onBook, onContact, onManageRating, index 
                     fontSize: '0.75rem',
                     fontWeight: 600,
                     minWidth: 24,
-                    height: 24
-                  }
+                    height: 24,
+                  },
                 }}
               />
             </Box>
-            
+
             <Box sx={{ flex: 1 }}>
-              <Typography 
-                variant="h5" 
-                fontWeight={700} 
+              <Typography
+                variant="h5"
+                fontWeight={700}
                 color="primary.dark"
-                sx={{ 
+                sx={{
                   mb: 1,
                   background: 'linear-gradient(45deg, #1976d2, #42a5f5)',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text'
+                  backgroundClip: 'text',
                 }}
               >
-                {trainer.name}
+                {trainer?.name || 'Unnamed Trainer'}
               </Typography>
-              
+
               <Stack direction="row" spacing={1} alignItems="center" mb={2}>
                 <Chip
-                  label={trainer.available ? '🟢 Available' : '🔴 Unavailable'}
-                  color={trainer.available ? 'success' : 'error'}
+                  label={trainer?.available ? '🟢 Available' : '🔴 Unavailable'}
+                  color={trainer?.available ? 'success' : 'error'}
                   size="medium"
-                  sx={{ 
+                  sx={{
                     fontWeight: 600,
                     borderRadius: 2,
-                    '& .MuiChip-label': { px: 2 }
+                    '& .MuiChip-label': { px: 2 },
                   }}
                 />
                 <Chip
@@ -185,19 +193,14 @@ function TrainerCard({ trainer, slots, onBook, onContact, onManageRating, index 
               </Stack>
 
               {/* Rating display */}
-              {trainer.reviewSummary?.averageRating && (
+              {trainer?.reviewSummary?.averageRating && (
                 <Stack direction="row" spacing={1} alignItems="center" mb={1}>
-                  <Rating 
-                    value={trainer.reviewSummary.averageRating} 
-                    readOnly 
-                    size="small"
-                    precision={0.1}
-                  />
+                  <Rating value={trainer.reviewSummary.averageRating} readOnly size="small" precision={0.1} />
                   <Typography variant="body2" color="text.primary" fontWeight={600}>
                     {trainer.reviewSummary.averageRating.toFixed(1)}
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
-                    ({trainer.reviewSummary.totalReviews} reviews)
+                    ({trainer.reviewSummary.totalReviews || 0} reviews)
                   </Typography>
                 </Stack>
               )}
@@ -205,15 +208,15 @@ function TrainerCard({ trainer, slots, onBook, onContact, onManageRating, index 
           </Stack>
 
           {/* Enhanced trainer details */}
-          <Paper 
-            elevation={0} 
-            sx={{ 
-              p: 2, 
-              mb: 3, 
+          <Paper
+            elevation={0}
+            sx={{
+              p: 2,
+              mb: 3,
               bgcolor: alpha('#1976d2', 0.04),
               borderRadius: 3,
               border: '1px solid',
-              borderColor: alpha('#1976d2', 0.12)
+              borderColor: alpha('#1976d2', 0.12),
             }}
           >
             <Grid container spacing={2}>
@@ -225,7 +228,7 @@ function TrainerCard({ trainer, slots, onBook, onContact, onManageRating, index 
                   </Typography>
                 </Stack>
                 <Typography variant="body1" fontWeight={600} color="primary.dark">
-                  {trainer.specialization}
+                  {trainer?.specialization || 'General Fitness'}
                 </Typography>
               </Grid>
               <Grid item xs={12} md={6}>
@@ -236,22 +239,22 @@ function TrainerCard({ trainer, slots, onBook, onContact, onManageRating, index 
                   </Typography>
                 </Stack>
                 <Typography variant="body1" fontWeight={600} color="primary.dark">
-                  {trainer.experience} years
+                  {trainer?.experience ?? 'N/A'} years
                 </Typography>
               </Grid>
             </Grid>
           </Paper>
 
           {/* Enhanced time slots */}
-          <Typography 
-            variant="h6" 
-            fontWeight={700} 
+          <Typography
+            variant="h6"
+            fontWeight={700}
             gutterBottom
-            sx={{ 
+            sx={{
               display: 'flex',
               alignItems: 'center',
               gap: 1,
-              mb: 2
+              mb: 2,
             }}
           >
             <CalendarTodayIcon color="primary" />
@@ -259,15 +262,15 @@ function TrainerCard({ trainer, slots, onBook, onContact, onManageRating, index 
           </Typography>
 
           {slots.length === 0 ? (
-            <Paper 
+            <Paper
               elevation={0}
-              sx={{ 
-                p: 3, 
+              sx={{
+                p: 3,
                 textAlign: 'center',
                 bgcolor: alpha('#f44336', 0.04),
                 border: '1px solid',
                 borderColor: alpha('#f44336', 0.12),
-                borderRadius: 3
+                borderRadius: 3,
               }}
             >
               <Typography color="text.secondary" fontStyle="italic" variant="body1">
@@ -292,53 +295,50 @@ function TrainerCard({ trainer, slots, onBook, onContact, onManageRating, index 
                       '&:before': { display: 'none' },
                       '&.Mui-expanded': {
                         boxShadow: '0 4px 16px rgba(25, 118, 210, 0.12)',
-                        borderColor: 'primary.light'
-                      }
+                        borderColor: 'primary.light',
+                      },
                     }}
                   >
-                    <AccordionSummary 
+                    <AccordionSummary
                       expandIcon={<ExpandMoreIcon color="primary" />}
-                      sx={{ 
+                      sx={{
                         minHeight: 56,
                         '& .MuiAccordionSummary-content': {
                           alignItems: 'center',
-                          margin: '12px 0'
-                        }
+                          margin: '12px 0',
+                        },
                       }}
                     >
                       <Stack direction="row" alignItems="center" spacing={2} sx={{ width: '100%' }}>
                         <Typography variant="subtitle1" fontWeight={600} color="primary.dark">
                           📅 {day}
                         </Typography>
-                        <Chip 
-                          label={daySlots.length} 
-                          size="small" 
-                          color="primary"
-                          sx={{ minWidth: 32 }}
-                        />
+                        <Chip label={daySlots.length} size="small" color="primary" sx={{ minWidth: 32 }} />
                       </Stack>
                     </AccordionSummary>
                     <AccordionDetails sx={{ pt: 0 }}>
                       <Grid container spacing={1.5}>
                         {daySlots.map((slot) => {
-                          const isBooked = slot.status === 'booked';
-                          const isCanceled = slot.status === 'canceled';
-                          const isAvailable = (!isBooked || isCanceled) && trainer.available;
+                          const isBooked = (slot?.status || '') === 'booked';
+                          const isCanceled = (slot?.status || '') === 'canceled';
+                          const isAvailable = trainer?.available && !isBooked && !isCanceled;
+
+                          const slotKey = slot?._id || `${trainer?._id || 't'}-${slot?.startTime}-${slot?.endTime}`;
 
                           return (
-                            <Grid item key={slot._id}>
-                              <Tooltip 
+                            <Grid item key={slotKey}>
+                              <Tooltip
                                 title={
-                                  !trainer.available
+                                  !trainer?.available
                                     ? `Trainer is currently unavailable`
-                                    : isAvailable 
-                                    ? `Click to book: ${slot.startTime} - ${slot.endTime}`
+                                    : isAvailable
+                                    ? `Click to book: ${slot?.startTime} - ${slot?.endTime}`
                                     : `This slot is already booked`
                                 }
                                 arrow
                               >
                                 <Button
-                                  variant={isAvailable ? "contained" : "outlined"}
+                                  variant={isAvailable ? 'contained' : 'outlined'}
                                   size="medium"
                                   onClick={() => {
                                     if (isAvailable) onBook(trainer, slot);
@@ -351,27 +351,23 @@ function TrainerCard({ trainer, slots, onBook, onContact, onManageRating, index 
                                     fontWeight: 600,
                                     py: 1,
                                     px: 2,
-                                    background: isAvailable 
-                                      ? 'linear-gradient(135deg, #1976d2, #42a5f5)'
-                                      : 'transparent',
+                                    background: isAvailable ? 'linear-gradient(135deg, #1976d2, #42a5f5)' : 'transparent',
                                     color: isAvailable ? 'white' : 'text.disabled',
                                     border: isAvailable ? 'none' : '2px solid #e0e0e0',
                                     '&:hover': {
-                                      background: isAvailable 
+                                      background: isAvailable
                                         ? 'linear-gradient(135deg, #1565c0, #1976d2)'
                                         : 'transparent',
                                       transform: isAvailable ? 'translateY(-2px)' : 'none',
-                                      boxShadow: isAvailable 
-                                        ? '0 6px 20px rgba(25, 118, 210, 0.3)'
-                                        : 'none'
+                                      boxShadow: isAvailable ? '0 6px 20px rgba(25, 118, 210, 0.3)' : 'none',
                                     },
                                     '&:disabled': {
-                                      opacity: 0.5
-                                    }
+                                      opacity: 0.5,
+                                    },
                                   }}
                                 >
                                   <AccessTimeIcon sx={{ mr: 1, fontSize: '1rem' }} />
-                                  {slot.startTime} - {slot.endTime}
+                                  {slot?.startTime} - {slot?.endTime}
                                 </Button>
                               </Tooltip>
                             </Grid>
@@ -388,8 +384,8 @@ function TrainerCard({ trainer, slots, onBook, onContact, onManageRating, index 
 
         {/* Enhanced actions */}
         <CardActions sx={{ justifyContent: 'space-between', px: 3, pt: 2, pb: 2 }}>
-          <Button 
-            variant="outlined" 
+          <Button
+            variant="outlined"
             size="large"
             startIcon={<StarIcon />}
             onClick={() => onManageRating(trainer)}
@@ -400,14 +396,14 @@ function TrainerCard({ trainer, slots, onBook, onContact, onManageRating, index 
               '&:hover': {
                 borderWidth: 2,
                 transform: 'translateY(-2px)',
-                boxShadow: '0 4px 12px rgba(25, 118, 210, 0.2)'
-              }
+                boxShadow: '0 4px 12px rgba(25, 118, 210, 0.2)',
+              },
             }}
           >
             Rate Trainer
           </Button>
-          <Button 
-            variant="contained" 
+          <Button
+            variant="contained"
             size="large"
             startIcon={<ChatIcon />}
             onClick={() => onContact(trainer)}
@@ -418,8 +414,8 @@ function TrainerCard({ trainer, slots, onBook, onContact, onManageRating, index 
               '&:hover': {
                 background: 'linear-gradient(135deg, #f57c00, #ff9800)',
                 transform: 'translateY(-2px)',
-                boxShadow: '0 6px 20px rgba(255, 152, 0, 0.3)'
-              }
+                boxShadow: '0 6px 20px rgba(255, 152, 0, 0.3)',
+              },
             }}
           >
             Contact
@@ -451,6 +447,7 @@ export default function Appointments() {
   const [clientEmail, setClientEmail] = useState('');
   const [selectedDate, setSelectedDate] = useState(null);
   const [bookingLoading, setBookingLoading] = useState(false);
+  const [phoneError, setPhoneError] = useState('');
 
   // Load user from localStorage on mount and location change
   useEffect(() => {
@@ -468,11 +465,14 @@ export default function Appointments() {
 
         // Fetch trainers
         const trainersRes = await axiosInstance.get('/trainers');
-        const trainersData = trainersRes.data;
+        const trainersData = trainersRes.data || [];
 
         // Fetch review summaries for trainers
         const summaryPromises = trainersData.map((t) =>
-          axiosInstance.get(`/reviews/${t._id}/summary`).then((res) => res.data).catch(() => null)
+          axiosInstance
+            .get(`/reviews/${t._id}/summary`)
+            .then((res) => res.data)
+            .catch(() => null)
         );
         const summaries = await Promise.all(summaryPromises);
 
@@ -492,7 +492,7 @@ export default function Appointments() {
         // Map trainer IDs to their timeslots
         const map = {};
         enriched.forEach((t, i) => {
-          map[t._id] = slotsArr[i];
+          map[t._id] = Array.isArray(slotsArr[i]) ? slotsArr[i] : [];
         });
         setTimeSlots(map);
       } catch (err) {
@@ -508,11 +508,28 @@ export default function Appointments() {
 
   // Filter trainers by search term (case insensitive)
   const filteredTrainers = useMemo(() => {
-    return trainers.filter((t) => 
-      t.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      t.specialization.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const term = (searchTerm || '').toLowerCase();
+    return trainers.filter((t) => {
+      const name = (t?.name || '').toLowerCase();
+      const spec = (t?.specialization || '').toLowerCase();
+      return name.includes(term) || spec.includes(term);
+    });
   }, [trainers, searchTerm]);
+
+  // Validate phone number
+  const validatePhone = (phone) => {
+    const phoneRegex = /^\d{10}$/;
+    if (!phone) {
+      setPhoneError('Phone number is required');
+      return false;
+    }
+    if (!phoneRegex.test(phone)) {
+      setPhoneError('Please enter a valid 10-digit phone number');
+      return false;
+    }
+    setPhoneError('');
+    return true;
+  };
 
   // Open booking modal and initialize form
   const handleBook = (trainer, slot) => {
@@ -522,6 +539,7 @@ export default function Appointments() {
     setClientPhone('');
     setClientEmail(user?.email || '');
     setSelectedDate(null);
+    setPhoneError('');
     setBookingModalOpen(true);
   };
 
@@ -529,14 +547,14 @@ export default function Appointments() {
   const handleContact = (trainer) => {
     setSnackbar({
       open: true,
-      message: `📞 Phone: ${trainer.contact?.phone || 'N/A'}\n📧 Email: ${trainer.contact?.email || 'N/A'}`,
+      message: `📞 Phone: ${trainer?.contact?.phone || 'N/A'}\n📧 Email: ${trainer?.contact?.email || 'N/A'}`,
       severity: 'info',
     });
   };
 
   // Navigate to rating management page for user and trainer
   const handleManageRating = (trainer) => {
-    if (user?.name && trainer._id) {
+    if (user?.name && trainer?._id) {
       const username = user.name;
       navigate(`/user-rate-management/${username}/${trainer._id}`);
     } else {
@@ -544,7 +562,7 @@ export default function Appointments() {
     }
   };
 
-  // Confirm booking handler with enhanced validation
+  // Confirm booking handler with enhanced validation including date and phone
   const handleConfirmBooking = async () => {
     if (!clientName.trim()) {
       setSnackbar({ open: true, message: '⚠️ Please enter your name.', severity: 'warning' });
@@ -552,6 +570,13 @@ export default function Appointments() {
     }
     if (!selectedDate) {
       setSnackbar({ open: true, message: '⚠️ Please select an appointment date.', severity: 'warning' });
+      return;
+    }
+    if (!validatePhone(clientPhone)) {
+      return;
+    }
+    if (!selectedTrainer?._id || !selectedSlot?._id) {
+      setSnackbar({ open: true, message: '⚠️ Invalid selection. Please try again.', severity: 'error' });
       return;
     }
 
@@ -565,19 +590,25 @@ export default function Appointments() {
           email: clientEmail.trim(),
         },
         date: selectedDate.toISOString(),
+        day: selectedSlot.day, // Include day for backend validation
+        startTime: selectedSlot.startTime, // Include start time for backend validation
+        endTime: selectedSlot.endTime, // Include end time for backend validation
       });
 
-      setSnackbar({ 
-        open: true, 
-        message: '🎉 Booking confirmed successfully! You will receive a confirmation email.', 
-        severity: 'success' 
+      setSnackbar({
+        open: true,
+        message: '🎉 Booking confirmed successfully! You will receive a confirmation email.',
+        severity: 'success',
       });
       setBookingModalOpen(false);
+
+      // Optionally refetch slots or update local state to mark the slot as booked
+      // For now, optimistic UI is not implemented; your backend should push updated slot state
     } catch (err) {
       console.error(err);
       setSnackbar({
         open: true,
-        message: `❌ ${err.response?.data?.message || 'Failed to book the appointment. Please try again.'}`,
+        message: `❌ ${err?.response?.data?.message || 'Failed to book the appointment. Please try again.'}`,
         severity: 'error',
       });
     } finally {
@@ -585,12 +616,29 @@ export default function Appointments() {
     }
   };
 
+  // Handle phone input change with validation
+  const handlePhoneChange = (e) => {
+    const value = e.target.value.replace(/\D/g, ''); // Remove non-digit characters
+    setClientPhone(value);
+    if (phoneError) {
+      validatePhone(value);
+    }
+  };
+
+  // Handle phone blur for validation
+  const handlePhoneBlur = () => {
+    validatePhone(clientPhone);
+  };
+
   return (
-    <Box sx={{ 
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
-      position: 'relative'
-    }}>
+    <>
+    <Box
+      sx={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+        position: 'relative',
+      }}
+    >
       {/* Background decoration */}
       <Box
         sx={{
@@ -601,23 +649,23 @@ export default function Appointments() {
           height: 300,
           background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
           opacity: 0.1,
-          zIndex: 0
+          zIndex: 0,
         }}
       />
-      
+
       <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1, py: 4 }}>
         {/* Enhanced header */}
         <Fade in timeout={600}>
           <Box sx={{ textAlign: 'center', mb: 6 }}>
-            <Typography 
-              variant="h3" 
-              fontWeight={800} 
-              sx={{ 
+            <Typography
+              variant="h3"
+              fontWeight={800}
+              sx={{
                 mb: 2,
                 background: 'linear-gradient(45deg, #1976d2, #42a5f5, #1e88e5)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text'
+                backgroundClip: 'text',
               }}
             >
               🏋️‍♂️ Find Your Perfect Trainer
@@ -627,16 +675,16 @@ export default function Appointments() {
             </Typography>
 
             {/* Enhanced search */}
-            <Paper 
+            <Paper
               elevation={8}
-              sx={{ 
-                p: 1, 
-                maxWidth: 500, 
+              sx={{
+                p: 1,
+                maxWidth: 500,
                 mx: 'auto',
                 borderRadius: 6,
                 background: 'linear-gradient(135deg, #ffffff 0%, #f8faff 100%)',
                 border: '1px solid',
-                borderColor: alpha('#1976d2', 0.2)
+                borderColor: alpha('#1976d2', 0.2),
               }}
             >
               <TextField
@@ -654,9 +702,9 @@ export default function Appointments() {
                   sx: {
                     borderRadius: 6,
                     '& .MuiOutlinedInput-notchedOutline': {
-                      border: 'none'
-                    }
-                  }
+                      border: 'none',
+                    },
+                  },
                 }}
               />
             </Paper>
@@ -667,13 +715,7 @@ export default function Appointments() {
         {loading && (
           <Stack spacing={3}>
             {[1, 2, 3].map((i) => (
-              <Skeleton 
-                key={i}
-                variant="rectangular" 
-                height={200} 
-                sx={{ borderRadius: 4 }}
-                animation="wave"
-              />
+              <Skeleton key={i} variant="rectangular" height={200} sx={{ borderRadius: 4 }} animation="wave" />
             ))}
           </Stack>
         )}
@@ -681,23 +723,21 @@ export default function Appointments() {
         {/* Enhanced error message */}
         {error && (
           <Fade in>
-            <Paper 
+            <Paper
               elevation={4}
-              sx={{ 
-                p: 4, 
+              sx={{
+                p: 4,
                 textAlign: 'center',
                 bgcolor: alpha('#f44336', 0.04),
                 border: '1px solid',
                 borderColor: alpha('#f44336', 0.2),
-                borderRadius: 4
+                borderRadius: 4,
               }}
             >
               <Typography color="error" variant="h6" gutterBottom>
                 ❌ Oops! Something went wrong
               </Typography>
-              <Typography color="text.secondary">
-                {error}
-              </Typography>
+              <Typography color="text.secondary">{error}</Typography>
             </Paper>
           </Fade>
         )}
@@ -705,51 +745,51 @@ export default function Appointments() {
         {/* No results message */}
         {!loading && !error && filteredTrainers.length === 0 && trainers.length > 0 && (
           <Fade in>
-            <Paper 
+            <Paper
               elevation={4}
-              sx={{ 
-                p: 4, 
+              sx={{
+                p: 4,
                 textAlign: 'center',
                 bgcolor: alpha('#ff9800', 0.04),
                 border: '1px solid',
                 borderColor: alpha('#ff9800', 0.2),
-                borderRadius: 4
+                borderRadius: 4,
               }}
             >
               <Typography variant="h6" gutterBottom>
                 🔍 No trainers found
               </Typography>
-              <Typography color="text.secondary">
-                Try adjusting your search terms or browse all available trainers.
-              </Typography>
+              <Typography color="text.secondary">Try adjusting your search terms or browse all available trainers.</Typography>
             </Paper>
           </Fade>
         )}
 
         {/* Enhanced trainer cards */}
-        {!loading && !error && filteredTrainers.map((trainer, index) => (
-          <TrainerCard
-            key={trainer._id}
-            trainer={trainer}
-            slots={timeSlots[trainer._id] || []}
-            onBook={handleBook}
-            onContact={handleContact}
-            onManageRating={handleManageRating}
-            index={index}
-          />
-        ))}
+        {!loading &&
+          !error &&
+          filteredTrainers.map((trainer, index) => (
+            <TrainerCard
+              key={trainer._id || `trainer-${index}`}
+              trainer={trainer}
+              slots={timeSlots[trainer._id] || []}
+              onBook={handleBook}
+              onContact={handleContact}
+              onManageRating={handleManageRating}
+              index={index}
+            />
+          ))}
 
         {/* Enhanced booking dialog */}
-        <Dialog 
-          open={bookingModalOpen} 
-          onClose={() => setBookingModalOpen(false)} 
-          maxWidth="sm" 
+        <Dialog
+          open={bookingModalOpen}
+          onClose={() => setBookingModalOpen(false)}
+          maxWidth="sm"
           fullWidth
           PaperProps={{
             sx: {
               borderRadius: 4,
-              background: 'linear-gradient(135deg, #ffffff 0%, #f8faff 100%)'
-            }
+              background: 'linear-gradient(135deg, #ffffff 0%, #f8faff 100%)',
+            },
           }}
         >
           <DialogTitle sx={{ pb: 1 }}>
@@ -762,9 +802,9 @@ export default function Appointments() {
               </Stack>
               <IconButton
                 onClick={() => setBookingModalOpen(false)}
-                sx={{ 
+                sx={{
                   bgcolor: alpha('#1976d2', 0.1),
-                  '&:hover': { bgcolor: alpha('#1976d2', 0.2) }
+                  '&:hover': { bgcolor: alpha('#1976d2', 0.2) },
                 }}
               >
                 <CloseIcon />
@@ -774,22 +814,22 @@ export default function Appointments() {
 
           <DialogContent dividers sx={{ px: 3, py: 3 }}>
             {/* Session details */}
-            <Paper 
+            <Paper
               elevation={0}
-              sx={{ 
-                p: 3, 
+              sx={{
+                p: 3,
                 mb: 3,
                 bgcolor: alpha('#1976d2', 0.04),
                 borderRadius: 3,
                 border: '1px solid',
-                borderColor: alpha('#1976d2', 0.12)
+                borderColor: alpha('#1976d2', 0.12),
               }}
             >
               <Typography variant="h6" fontWeight={600} gutterBottom color="primary.dark">
-                🏋️‍♂️ {selectedTrainer?.name}
+                🏋️‍♂️ {selectedTrainer?.name || 'Trainer'}
               </Typography>
               <Typography variant="body1" color="text.secondary">
-                📅 {selectedSlot?.day} • ⏰ {selectedSlot?.startTime} - {selectedSlot?.endTime}
+                📅 {selectedSlot?.day || '-'} • ⏰ {selectedSlot?.startTime || '-'} - {selectedSlot?.endTime || '-'}
               </Typography>
             </Paper>
 
@@ -806,26 +846,31 @@ export default function Appointments() {
                     <InputAdornment position="start">
                       <PersonIcon color="primary" />
                     </InputAdornment>
-                  )
+                  ),
                 }}
                 sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3 } }}
               />
-              
+
               <TextField
-                label="Phone Number"
+                label="Phone Number *"
                 fullWidth
                 value={clientPhone}
-                onChange={(e) => setClientPhone(e.target.value)}
+                onChange={handlePhoneChange}
+                onBlur={handlePhoneBlur}
+                error={!!phoneError}
+                helperText={phoneError}
+                required
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
                       <PhoneIcon color="primary" />
                     </InputAdornment>
-                  )
+                  ),
                 }}
                 sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3 } }}
+                placeholder="10-digit phone number"
               />
-              
+
               <TextField
                 label="Email Address"
                 fullWidth
@@ -836,21 +881,21 @@ export default function Appointments() {
                     <InputAdornment position="start">
                       <EmailIcon color="primary" />
                     </InputAdornment>
-                  )
+                  ),
                 }}
                 sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3 } }}
               />
 
               <LocalizationProvider dateAdapter={AdapterDateFns}>
                 <DatePicker
-                  label="Select Appointment Date"
+                  label="Select Appointment Date *"
                   value={selectedDate}
                   onChange={(newDate) => setSelectedDate(newDate)}
                   disablePast
                   renderInput={(params) => (
-                    <TextField 
-                      {...params} 
-                      fullWidth 
+                    <TextField
+                      {...params}
+                      fullWidth
                       required
                       InputProps={{
                         ...params.InputProps,
@@ -858,7 +903,7 @@ export default function Appointments() {
                           <InputAdornment position="start">
                             <CalendarTodayIcon color="primary" />
                           </InputAdornment>
-                        )
+                        ),
                       }}
                       sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3 } }}
                     />
@@ -869,23 +914,23 @@ export default function Appointments() {
           </DialogContent>
 
           <DialogActions sx={{ p: 3, gap: 2 }}>
-            <Button 
+            <Button
               onClick={() => setBookingModalOpen(false)}
               variant="outlined"
               size="large"
-              sx={{ 
+              sx={{
                 borderRadius: 3,
                 fontWeight: 600,
                 px: 4,
                 borderWidth: 2,
-                '&:hover': { borderWidth: 2 }
+                '&:hover': { borderWidth: 2 },
               }}
             >
               Cancel
             </Button>
             <Button
               onClick={handleConfirmBooking}
-              disabled={bookingLoading}
+              disabled={bookingLoading || !!phoneError}
               variant="contained"
               size="large"
               sx={{
@@ -896,28 +941,28 @@ export default function Appointments() {
                 '&:hover': {
                   background: 'linear-gradient(135deg, #388e3c, #4caf50)',
                   transform: 'translateY(-2px)',
-                  boxShadow: '0 6px 20px rgba(76, 175, 80, 0.3)'
+                  boxShadow: '0 6px 20px rgba(76, 175, 80, 0.3)',
                 },
                 '&:disabled': {
-                  background: 'linear-gradient(135deg, #bdbdbd, #e0e0e0)'
-                }
+                  background: 'linear-gradient(135deg, #bdbdbd, #e0e0e0)',
+                },
               }}
             >
               {bookingLoading ? (
                 <Stack direction="row" alignItems="center" spacing={1}>
-                  <Box 
-                    sx={{ 
-                      width: 16, 
-                      height: 16, 
+                  <Box
+                    sx={{
+                      width: 16,
+                      height: 16,
                       border: '2px solid currentColor',
                       borderTop: '2px solid transparent',
                       borderRadius: '50%',
                       animation: 'spin 1s linear infinite',
                       '@keyframes spin': {
                         '0%': { transform: 'rotate(0deg)' },
-                        '100%': { transform: 'rotate(360deg)' }
-                      }
-                    }} 
+                        '100%': { transform: 'rotate(360deg)' },
+                      },
+                    }}
                   />
                   <Typography>Booking...</Typography>
                 </Stack>
@@ -939,14 +984,14 @@ export default function Appointments() {
             severity={snackbar.severity}
             onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
             variant="filled"
-            sx={{ 
+            sx={{
               width: '100%',
               borderRadius: 3,
               fontWeight: 600,
               fontSize: '1rem',
               '& .MuiAlert-icon': {
-                fontSize: '1.5rem'
-              }
+                fontSize: '1.5rem',
+              },
             }}
           >
             {snackbar.message.split('\n').map((line, idx) => (
@@ -961,15 +1006,15 @@ export default function Appointments() {
         {/* Statistics footer */}
         {!loading && !error && trainers.length > 0 && (
           <Fade in timeout={1000}>
-            <Paper 
+            <Paper
               elevation={4}
-              sx={{ 
+              sx={{
                 mt: 6,
                 p: 4,
                 borderRadius: 4,
                 background: 'linear-gradient(135deg, #1976d2, #42a5f5)',
                 color: 'white',
-                textAlign: 'center'
+                textAlign: 'center',
               }}
             >
               <Grid container spacing={4}>
@@ -977,25 +1022,19 @@ export default function Appointments() {
                   <Typography variant="h3" fontWeight={700}>
                     {trainers.length}
                   </Typography>
-                  <Typography variant="h6">
-                    Expert Trainers
-                  </Typography>
+                  <Typography variant="h6">Expert Trainers</Typography>
                 </Grid>
                 <Grid item xs={12} md={4}>
                   <Typography variant="h3" fontWeight={700}>
                     {Object.values(timeSlots).flat().length}
                   </Typography>
-                  <Typography variant="h6">
-                    Available Slots
-                  </Typography>
+                  <Typography variant="h6">Available Slots</Typography>
                 </Grid>
                 <Grid item xs={12} md={4}>
                   <Typography variant="h3" fontWeight={700}>
-                    {trainers.filter(t => t.available).length}
+                    {trainers.filter((t) => t.available).length}
                   </Typography>
-                  <Typography variant="h6">
-                    Active Today
-                  </Typography>
+                  <Typography variant="h6">Active Today</Typography>
                 </Grid>
               </Grid>
             </Paper>
@@ -1003,5 +1042,7 @@ export default function Appointments() {
         )}
       </Container>
     </Box>
+    <Footer />
+    </>
   );
 }
