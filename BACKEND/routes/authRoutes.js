@@ -1,5 +1,5 @@
 const express = require('express');
-const { register, login, getAllUserCount, logout } = require('../controllers/authController');
+const { register, login, getAllUserCount, logout, getUsers } = require('../controllers/authController');
 const authMiddleware = require('../middlewares/authMiddleware');
 
 const router = express.Router();
@@ -11,5 +11,6 @@ router.get('/protected', authMiddleware, (req, res) => {
   res.send('Protected route accessed');
 });
 router.get('/get-user-count', getAllUserCount)
+router.get('/users', authMiddleware, getUsers);
 
 module.exports = router;

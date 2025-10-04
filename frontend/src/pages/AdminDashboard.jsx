@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import StoreAdminSidebar from '../components/StoreAdminSidebar';
 import axiosInstant from '../api/axiosInstance';
+import { useNavigate } from 'react-router-dom';
 
 // Material UI Components
 import { Card, CardContent, Typography } from '@mui/material';
@@ -11,8 +12,9 @@ import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 import DescriptionIcon from '@mui/icons-material/Description';
 
 
-function StoreAdminDashboard() {
+function AdminDashboard() {
   const sidebarWidth = 100;
+  const navigate = useNavigate();
   const [userCount, setUserCount] = useState(null);
   const [productCount, setProductCount] = useState(null);
   const [productCategoryCount, setProductCategoryCount] = useState(null);
@@ -285,12 +287,108 @@ function StoreAdminDashboard() {
                 {draftCount !== null ? draftCount : 'Loading...'}
                 </Typography>
             </CardContent>
-            </Card>
-            
+          </Card>
+          
+        </div>
+
+        <div
+          style={{
+            marginTop: '40px',
+            borderRadius: '24px',
+            padding: '32px',
+            background: 'linear-gradient(135deg, rgba(2,6,23,0.95) 0%, rgba(15,23,42,0.92) 45%, rgba(239,68,68,0.35) 100%)',
+            boxShadow: '0 24px 48px rgba(15, 23, 42, 0.35)',
+            border: '1px solid rgba(148, 163, 184, 0.2)',
+            color: '#f8fafc',
+          }}
+        >
+          <Typography variant="h5" sx={{ fontWeight: 700, mb: 1, color: '#f8fafc' }}>
+            Programme Management
+          </Typography>
+          <Typography variant="body2" sx={{ color: 'rgba(241,245,249,0.7)', mb: 4 }}>
+            Launch the planners below to create structured workout and meal programmes for members.
+          </Typography>
+
+          <div
+            style={{
+              display: 'grid',
+              gap: '24px',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+            }}
+          >
+            <ProgrammeCard
+              title="Workout Plans"
+              subtitle="Assign tailored training programmes"
+              description="Build personalised routines with curated exercises, intensity and progression guidance."
+              cta="Launch builder"
+              onClick={() => navigate('/admin/workout-plans/create')}
+            />
+            <ProgrammeCard
+              title="Meal Plans"
+              subtitle="Design personalised nutrition"
+              description="Combine macro targets, dietary preferences and curated foods into downloadable guides."
+              cta="Open planner"
+              onClick={() => navigate('/admin/meal-plans/create')}
+            />
           </div>
+        </div>
       </div>
     </div>
   );
 }
 
-export default StoreAdminDashboard;
+const ProgrammeCard = ({ title, subtitle, description, cta, onClick }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    style={{
+      border: 'none',
+      borderRadius: '20px',
+      padding: '28px',
+      textAlign: 'left',
+      background: 'rgba(15,23,42,0.85)',
+      color: '#f8fafc',
+      cursor: 'pointer',
+      boxShadow: '0 16px 30px rgba(15,23,42,0.4)',
+      transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+    }}
+    onMouseEnter={(event) => {
+      event.currentTarget.style.transform = 'translateY(-6px) scale(1.01)';
+      event.currentTarget.style.boxShadow = '0 20px 40px rgba(239,68,68,0.35)';
+    }}
+    onMouseLeave={(event) => {
+      event.currentTarget.style.transform = 'translateY(0) scale(1)';
+      event.currentTarget.style.boxShadow = '0 16px 30px rgba(15,23,42,0.4)';
+    }}
+  >
+    <div
+      style={{
+        fontSize: '14px',
+        letterSpacing: '0.08em',
+        textTransform: 'uppercase',
+        color: '#f87171',
+        fontWeight: 600,
+      }}
+    >
+      {title}
+    </div>
+    <div style={{ fontSize: '22px', fontWeight: 700, margin: '12px 0 14px' }}>{subtitle}</div>
+    <p style={{ fontSize: '14px', color: 'rgba(226,232,240,0.7)' }}>{description}</p>
+    <div
+      style={{
+        marginTop: '24px',
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '12px',
+        fontSize: '14px',
+        fontWeight: 600,
+        color: '#fca5a5',
+      }}
+    >
+      <span>{cta}</span>
+      <span aria-hidden>&rarr;</span>
+    </div>
+  </button>
+);
+
+export default AdminDashboard;
