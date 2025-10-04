@@ -10,6 +10,8 @@ const Register = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [age, setAge] = useState('');
+  const [gender, setGender] = useState('');
   const [error, setError] = useState('');
   const [passwordMatchError, setPasswordMatchError] = useState('');
   const navigate = useNavigate();
@@ -32,8 +34,22 @@ const Register = () => {
       return;
     }
 
+    if (!age || Number(age) <= 0) {
+      const message = 'Please enter a valid age';
+      setError(message);
+      toast.error(message);
+      return;
+    }
+
+    if (!gender) {
+      const message = 'Please select a gender';
+      setError(message);
+      toast.error(message);
+      return;
+    }
+
     try {
-        const res = await registerUser({ username, email, password });
+        const res = await registerUser({ username, email, password, age: Number(age), gender });
         localStorage.setItem('token', res.token);
         localStorage.setItem('user', JSON.stringify(res.user));
     
@@ -80,6 +96,30 @@ const Register = () => {
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
         />
+        <Input
+          label="Age"
+          type="number"
+          value={age}
+          onChange={(e) => setAge(e.target.value)}
+        />
+        <div style={{ marginBottom: '1rem' }}>
+          <label style={{ display: 'block', marginBottom: '0.5rem' }}>Gender</label>
+          <select
+            value={gender}
+            onChange={(e) => setGender(e.target.value)}
+            style={{
+              padding: '0.5rem',
+              width: '100%',
+              border: '1px solid #ccc',
+              borderRadius: '4px',
+            }}
+          >
+            <option value="">Select gender</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
         {passwordMatchError && (
           <p style={{ color: 'red', marginTop: '0.25rem' }}>{passwordMatchError}</p>
         )}
