@@ -3,10 +3,11 @@ const TimeSlot = require('../models/timeSlotModel');
 const Trainer = require('../models/trainerModel');
 const sendEmail = require('../helpers/emailSend');
 
+
 // Book a trainer's available time slot
 exports.bookTrainer = async (req, res) => {
   const { trainerId, slotId } = req.params;
-  const { clientName, clientContact, date } = req.body;  // <-- Added date here
+  const { clientName, clientContact, date } = req.body;
 
   if (!clientName || !date) {
     return res.status(400).json({ message: 'clientName and date are required' });
@@ -17,17 +18,41 @@ exports.bookTrainer = async (req, res) => {
     const slot = await TimeSlot.findOne({ _id: slotId, trainerId });
     if (!slot) return res.status(404).json({ message: 'Time slot not found for trainer' });
 
-    // Check if already booked
-    const existingBooking = await Booking.findOne({ slotId, status: { $ne: 'cancelled' } });
-    if (existingBooking) return res.status(409).json({ message: 'Time slot already booked' });
+    // Fix: Proper date normalization
+    const bookingDate = new Date(date);
+    if (isNaN(bookingDate.getTime())) {
+      return res.status(400).json({ message: 'Invalid date format' });
+    }
+    
+    // Normalize to start of day in UTC to avoid timezone issues
+    const normalizedDate = new Date(Date.UTC(
+      bookingDate.getUTCFullYear(),
+      bookingDate.getUTCMonth(),
+      bookingDate.getUTCDate()
+    ));
 
-    // Create booking
+    // Add 1 day to the normalized date
+    const bookingDateWithOffset = new Date(normalizedDate);
+    bookingDateWithOffset.setUTCDate(bookingDateWithOffset.getUTCDate() + 1);
+
+    // Check if already booked for the same date (using the offset date)
+    const existingBooking = await Booking.findOne({
+      slotId,
+      date: bookingDateWithOffset,
+      status: { $ne: 'cancelled' }
+    });
+
+    if (existingBooking) {
+      return res.status(409).json({ message: 'Time slot already booked for this date' });
+    }
+
+    // Create booking - store the date with +1 day
     const booking = new Booking({
       trainerId,
       slotId,
       clientName,
       clientContact,
-      date,
+      date: bookingDateWithOffset, // Store date with +1 day
     });
 
     const savedBooking = await booking.save();
@@ -44,6 +69,8 @@ exports.getAllBookings = async (req, res) => {
     const bookings = await Booking.find()
       .populate('trainerId')
       .populate('slotId');
+      console.log(bookings);
+      
     res.json(bookings);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -139,31 +166,74 @@ exports.deleteBooking = async (req, res) => {
 // Update booking details (without affecting status)
 exports.rescheduleBooking = async (req, res) => {
   const { bookingId } = req.params;
-  const { date, slotId } = req.body;
+  const { date, slotId, contactNumber, email, clientName } = req.body;
 
   try {
-    if (!date && !slotId) {
-      return res.status(400).json({ message: 'Provide new date or slotId to reschedule' });
+    if (!date && !slotId && !contactNumber && !email && !clientName) {
+      return res.status(400).json({ message: 'Provide fields to update' });
     }
 
     const update = {};
-    if (date) update.date = date;
+    
+    // Handle date update with proper conversion
+    if (date) {
+      let bookingDate;
+      
+      if (date instanceof Date) {
+        bookingDate = date;
+      } else if (typeof date === 'string') {
+        if (date.includes('T')) {
+          bookingDate = new Date(date);
+        } else {
+          const [year, month, day] = date.split('-');
+          bookingDate = new Date(year, month - 1, day);
+        }
+      } else {
+        return res.status(400).json({ message: 'Invalid date format' });
+      }
+
+      if (isNaN(bookingDate.getTime())) {
+        return res.status(400).json({ message: 'Invalid date' });
+      }
+
+      const normalizedDate = new Date(
+        bookingDate.getFullYear(),
+        bookingDate.getMonth(),
+        bookingDate.getDate()
+      );
+
+      update.date = normalizedDate;
+      console.log('Date conversion:', { input: date, normalized: normalizedDate });
+    }
+    
+    // Handle other fields
     if (slotId) update.slotId = slotId;
+    if (clientName !== undefined) update.clientName = clientName;
+    
+    // Handle contact information - map to the correct schema structure
+    if (contactNumber !== undefined || email !== undefined) {
+      update.clientContact = {};
+      if (contactNumber !== undefined) update.clientContact.phone = contactNumber;
+      if (email !== undefined) update.clientContact.email = email;
+    }
+
+    console.log('Final update object:', update);
 
     const booking = await Booking.findByIdAndUpdate(
       bookingId,
       update,
-      { new: true }
+      { new: true, runValidators: true }
     ).populate('trainerId').populate('slotId');
 
     if (!booking) {
       return res.status(404).json({ message: 'Booking not found' });
     }
 
-    res.json({ message: 'Booking rescheduled successfully', booking });
+    console.log('Updated booking:', booking);
+    res.json({ message: 'Booking updated successfully', booking });
 
   } catch (err) {
-    console.error('Error rescheduling booking:', err);
+    console.error('Error updating booking:', err);
     res.status(500).json({ error: err.message });
   }
 };

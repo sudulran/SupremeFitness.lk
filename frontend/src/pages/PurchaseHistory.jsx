@@ -10,6 +10,8 @@ import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
+import Footer from '../components/Footer';
+
 function PurchaseHistory() {
     const [purchaseData, setPurchaseData] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -21,7 +23,7 @@ function PurchaseHistory() {
     const dashboardContentStyle = {
         padding: '30px',
         marginLeft: window.innerWidth >= 768 ? `${sidebarWidth}px` : '0',
-        backgroundColor: '#f9f9f9',
+        backgroundColor: '#000000', // full black background
         minHeight: '100vh',
         transition: 'margin-left 0.3s ease-in-out',
     };
@@ -115,7 +117,6 @@ function PurchaseHistory() {
         doc.text(`${receiverName}`, 30, y);
         doc.text(`${receiverEmail}`, 30, y + 5);
 
-        // Prepare table data with Payment last
         const tableY = y + 15;
         const tableData = purchases.map((purchase, index) => [
             index + 1,
@@ -123,10 +124,9 @@ function PurchaseHistory() {
             `**** **** **** ${purchase.card_number.slice(-4)}`,
             purchase.exp_date,
             new Date(purchase.createdAt).toLocaleDateString(),
-            `$${purchase.payment.toFixed(2)}`,  // Payment last
+            `$${purchase.payment.toFixed(2)}`,
         ]);
 
-        // Calculate total payment
         const totalPayment = purchases.reduce((sum, p) => sum + p.payment, 0);
 
         autoTable(doc, {
@@ -138,11 +138,10 @@ function PurchaseHistory() {
                 cellPadding: 3,
             },
             headStyles: {
-                fillColor: [76, 175, 80], // green
+                fillColor: [76, 175, 80],
                 textColor: 255,
             },
             didDrawPage: (data) => {
-                // Add total after table is drawn
                 const finalY = data.cursor.y + 10;
                 doc.setFont(undefined, 'bold');
                 doc.text('Total Payment:', data.settings.margin.left + 10, finalY);
@@ -157,47 +156,41 @@ function PurchaseHistory() {
     const renderTable = (data) => (
         <table style={styles.table}>
             <thead>
-            <tr>
-                <th style={styles.th}>#</th>
-                <th style={styles.th}>Card Holder</th>
-                <th style={styles.th}>Card Number</th>
-                <th style={styles.th}>Exp. Date</th>
-                <th style={styles.th}>Payment Date</th>
-                <th style={styles.th}>Payment</th> {/* Payment last */}
-            </tr>
+                <tr>
+                    <th style={styles.th}>#</th>
+                    <th style={styles.th}>Card Holder</th>
+                    <th style={styles.th}>Card Number</th>
+                    <th style={styles.th}>Exp. Date</th>
+                    <th style={styles.th}>Payment Date</th>
+                    <th style={styles.th}>Payment</th>
+                </tr>
             </thead>
             <tbody>
-            {data.map((purchase, index) => (
-                <tr key={purchase._id} style={styles.row}>
-                <td style={styles.td}>{index + 1}</td>
-                <td style={styles.td}>{purchase.card_holder}</td>
-                <td style={styles.td}>**** **** **** {purchase.card_number.slice(-4)}</td>
-                <td style={styles.td}>{purchase.exp_date}</td>
-                <td style={styles.td}>{new Date(purchase.createdAt).toLocaleDateString()}</td>
-                <td style={styles.td}>${purchase.payment.toFixed(2)}</td> {/* Payment last */}
-                </tr>
-            ))}
+                {data.map((purchase, index) => (
+                    <tr key={purchase._id} style={styles.row}>
+                        <td style={styles.td}>{index + 1}</td>
+                        <td style={styles.td}>{purchase.card_holder}</td>
+                        <td style={styles.td}>**** **** **** {purchase.card_number.slice(-4)}</td>
+                        <td style={styles.td}>{purchase.exp_date}</td>
+                        <td style={styles.td}>{new Date(purchase.createdAt).toLocaleDateString()}</td>
+                        <td style={styles.td}>${purchase.payment.toFixed(2)}</td>
+                    </tr>
+                ))}
             </tbody>
         </table>
     );
-    
+
     return (
-        <div>
-            <main style={{margin: '50px'}}>
-                <h2 style={{ marginBottom: '20px', color: '#333' }}>Purchase History</h2>
+        <>
+        <div style={{ backgroundColor: '#000', minHeight: '100vh' }}>
+            <main style={{ marginLeft:'50px', marginRight:'50px'}}>
+                <h4 style={{ marginBottom: '20px', color: '#fff', fontSize: '50px' }}>Purchase History</h4>
 
                 {/* PDF Download Button */}
                 <div style={{ marginBottom: '20px' }}>
                     <button
                         onClick={() => generatePDF(getCurrentMonthPurchases())}
-                        style={{
-                            padding: '10px 20px',
-                            backgroundColor: '#1976d2',
-                            color: '#fff',
-                            border: 'none',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                        }}
+                        style={styles.redButton}
                     >
                         📄 Download Current Month Report (PDF)
                     </button>
@@ -208,7 +201,7 @@ function PurchaseHistory() {
                     <button
                         onClick={() => setGroupByMode('all')}
                         style={{
-                            ...styles.tabButton,
+                            ...styles.redButton,
                             ...(groupByMode === 'all' ? styles.activeTab : {}),
                         }}
                     >
@@ -218,7 +211,7 @@ function PurchaseHistory() {
                     <button
                         onClick={() => setGroupByMode('monthly')}
                         style={{
-                            ...styles.tabButton,
+                            ...styles.redButton,
                             ...(groupByMode === 'monthly' ? styles.activeTab : {}),
                         }}
                     >
@@ -238,7 +231,7 @@ function PurchaseHistory() {
                     renderTable(purchaseData)
                 ) : (
                     Object.entries(groupByMonthYear(purchaseData))
-                        .sort((a, b) => b[0].localeCompare(a[0])) // newest first
+                        .sort((a, b) => b[0].localeCompare(a[0]))
                         .map(([groupKey, purchases]) => (
                             <section key={groupKey} style={{ marginBottom: '2rem' }}>
                                 <h3 style={styles.monthHeading}>{formatMonthYear(groupKey)}</h3>
@@ -248,91 +241,80 @@ function PurchaseHistory() {
                 )}
             </main>
         </div>
+            <Footer />
+            </>
     );
 }
 
 const styles = {
-  table: {
-    width: '100%',
-    borderCollapse: 'collapse',
-    backgroundColor: '#fff',
-    borderRadius: '6px',
-    overflow: 'hidden',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.1)', // Slightly stronger shadow for better contrast
-    tableLayout: 'fixed', // Fixed layout to prevent stretching of columns
-    wordWrap: 'break-word', // Break long text inside cells
-  },
-  th: {
-    borderBottom: '2px solid #ccc', // Slightly darker border for header
-    padding: '12px 15px',
-    backgroundColor: '#f5f5f5',
-    textAlign: 'left',
-    fontWeight: '600',
-    color: '#333',
-    whiteSpace: 'nowrap',
-    userSelect: 'none',
-  },
-  td: {
-    borderBottom: '1px solid #eee',
-    padding: '12px 15px',
-    color: '#555',
-    whiteSpace: 'nowrap',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis', // Ellipsis for overflow text
-  },
-  row: {
-    transition: 'background-color 0.25s ease-in-out',
-    cursor: 'default',
-    // Hover effect to highlight rows (optional, remove if not needed)
-    ':hover': {
-      backgroundColor: '#f9f9f9',
+    table: {
+        width: '100%',
+        borderCollapse: 'collapse',
+        backgroundColor: 'navy',
+        borderRadius: '6px',
+        overflow: 'hidden',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.5)',
+        color: '#fff',
     },
-  },
-  groupByTabs: {
-    display: 'flex',
-    gap: '12px',
-    marginBottom: '24px',
-    flexWrap: 'wrap', // Wrap tabs on smaller screens
-  },
-  tabButton: {
-    padding: '10px 20px',
-    backgroundColor: '#e0e0e0',
-    border: 'none',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    fontWeight: '600',
-    color: '#333',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '10px',
-    transition: 'background-color 0.3s ease, color 0.3s ease',
-    userSelect: 'none',
-  },
-  activeTab: {
-    backgroundColor: '#4caf50',
-    color: '#fff',
-    boxShadow: '0 2px 8px rgba(76, 175, 80, 0.4)',
-  },
-  icon: {
-    fontSize: '20px',
-  },
-  message: {
-    padding: '1.2rem 1rem',
-    backgroundColor: '#fefefe',
-    borderRadius: '8px',
-    boxShadow: '0 1px 6px rgba(0,0,0,0.1)',
-    color: '#555',
-    fontSize: '1rem',
-    textAlign: 'center',
-  },
-  monthHeading: {
-    marginBottom: '14px',
-    fontSize: '1.25rem',
-    color: '#333',
-    borderBottom: '2px solid #ddd',
-    paddingBottom: '6px',
-  },
+    th: {
+        borderBottom: '2px solid #ccc',
+        padding: '12px 15px',
+        backgroundColor: '#001f4d',
+        textAlign: 'left',
+        fontWeight: '600',
+        color: '#fff',
+        whiteSpace: 'nowrap',
+    },
+    td: {
+        borderBottom: '1px solid #eee',
+        padding: '12px 15px',
+        color: '#fff',
+        whiteSpace: 'nowrap',
+    },
+    row: {
+        transition: 'background-color 0.25s ease-in-out',
+    },
+    groupByTabs: {
+        display: 'flex',
+        gap: '12px',
+        marginBottom: '24px',
+        flexWrap: 'wrap',
+    },
+    redButton: {
+        padding: '10px 20px',
+        backgroundColor: 'red',
+        color: '#fff',
+        border: 'none',
+        borderRadius: '6px',
+        cursor: 'pointer',
+        fontWeight: '600',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px',
+    },
+    activeTab: {
+        backgroundColor: '#b30000',
+        color: '#fff',
+        boxShadow: '0 2px 8px rgba(255, 0, 0, 0.4)',
+    },
+    icon: {
+        fontSize: '20px',
+    },
+    message: {
+        padding: '1.2rem 1rem',
+        backgroundColor: '#222',
+        borderRadius: '8px',
+        color: '#fff',
+        fontSize: '1rem',
+        textAlign: 'center',
+    },
+    monthHeading: {
+        marginBottom: '14px',
+        fontSize: '1.25rem',
+        color: '#fff',
+        borderBottom: '2px solid #555',
+        paddingBottom: '6px',
+    },
 };
-
 
 export default PurchaseHistory;

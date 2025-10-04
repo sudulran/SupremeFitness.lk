@@ -113,9 +113,14 @@ function ProductManagement() {
 
         <Button
           variant="contained"
-          color="primary"
           onClick={handleOpenAddModal}
-          sx={{ mb: 2 }}
+          sx={{ 
+            mb: 2,
+            backgroundColor: '#d32f2f',
+            '&:hover': {
+              backgroundColor: '#b71c1c',
+            }
+          }}
         >
           Add Product
         </Button>

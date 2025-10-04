@@ -113,7 +113,7 @@ exports.deleteProduct = async (req, res) => {
   }
 };
 
-// Get total product count for dashboard
+// Get total product count for dashboard statistics
 exports.getAllProductsCount = async (req, res) => {
   try {
     const allProductCount = await Product.countDocuments();

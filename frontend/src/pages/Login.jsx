@@ -5,6 +5,7 @@ import colors from '../theme/colors';
 import { loginUser } from '../api/authService';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import Footer from '../components/Footer';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -37,6 +38,7 @@ const Login = () => {
   };
 
   return (
+    <>
     <div style={containerStyle}>
       <h2>Login</h2>
       <form onSubmit={handleSubmit}>
@@ -50,6 +52,8 @@ const Login = () => {
         <Link to="/register" style={linkStyle}>Go to Register</Link>
       </p>
     </div>
+    <Footer />
+    </>
   );
 };
 
