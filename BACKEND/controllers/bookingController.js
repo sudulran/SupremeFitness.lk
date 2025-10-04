@@ -6,7 +6,7 @@ const sendEmail = require('../helpers/emailSend');
 // Book a trainer's available time slot
 exports.bookTrainer = async (req, res) => {
   const { trainerId, slotId } = req.params;
-  const { clientName, clientContact, date } = req.body;  // <-- Added date here
+  const { clientName, clientContact, date } = req.body;
 
   if (!clientName || !date) {
     return res.status(400).json({ message: 'clientName and date are required' });
@@ -17,9 +17,20 @@ exports.bookTrainer = async (req, res) => {
     const slot = await TimeSlot.findOne({ _id: slotId, trainerId });
     if (!slot) return res.status(404).json({ message: 'Time slot not found for trainer' });
 
-    // Check if already booked
-    const existingBooking = await Booking.findOne({ slotId, status: { $ne: 'cancelled' } });
-    if (existingBooking) return res.status(409).json({ message: 'Time slot already booked' });
+    // Normalize the date (optional but recommended)
+    const bookingDate = new Date(date);
+    bookingDate.setHours(0, 0, 0, 0); // Truncate time
+
+    // Check if already booked for the same date
+    const existingBooking = await Booking.findOne({
+      slotId,
+      date: bookingDate,
+      status: { $ne: 'cancelled' }
+    });
+
+    if (existingBooking) {
+      return res.status(409).json({ message: 'Time slot already booked for this date' });
+    }
 
     // Create booking
     const booking = new Booking({
@@ -27,7 +38,7 @@ exports.bookTrainer = async (req, res) => {
       slotId,
       clientName,
       clientContact,
-      date,
+      date: bookingDate,
     });
 
     const savedBooking = await booking.save();
@@ -37,6 +48,7 @@ exports.bookTrainer = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
 
 // Get all bookings
 exports.getAllBookings = async (req, res) => {
@@ -134,7 +146,6 @@ exports.deleteBooking = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
-
 
 // Update booking details (without affecting status)
 exports.rescheduleBooking = async (req, res) => {

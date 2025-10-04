@@ -21,7 +21,7 @@ import axiosInstance from '../api/axiosInstance';
 const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
 function TimeSlotManagement() {
-  const sidebarWidth = 200;
+  const sidebarWidth = 10;
   const { trainerId } = useParams();
 
   const [timeSlots, setTimeSlots] = useState([]);

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import {
   Dialog,
@@ -12,6 +13,7 @@ import {
   InputAdornment,
   Tooltip,
   IconButton,
+  Paper,
 } from "@mui/material";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import CreditCardIcon from "@mui/icons-material/CreditCard";
@@ -42,13 +44,9 @@ function PaymentModal({ open, onClose, totalAmount, cartId, onPaymentSuccess }) 
   const [error, setError] = useState(null);
   const [successMsg, setSuccessMsg] = useState(null);
 
-  // Inline input errors for better UX
   const [errors, setErrors] = useState({});
-
-  // User email state
   const [userEmail, setUserEmail] = useState("");
 
-  // Load user email from localStorage on mount or when modal opens
   useEffect(() => {
     if (open) {
       const storedUser = localStorage.getItem("user");
@@ -59,19 +57,14 @@ function PaymentModal({ open, onClose, totalAmount, cartId, onPaymentSuccess }) 
 
   // Validations
   const validateCardHolder = (name) => name.trim().length > 0;
-
   const validateCardNumber = (num) => /^\d{13,19}$/.test(num.replace(/\s/g, ""));
-
   const validateExpDate = (date) => {
     if (!/^(0[1-9]|1[0-2])\/?([0-9]{2})$/.test(date)) return false;
-    // Check if date is in the future
     const [month, year] = date.split("/");
-    // Create expiry date at end of the month
     const expiry = new Date(`20${year}`, parseInt(month), 0);
     const now = new Date();
     return expiry > now;
   };
-
   const validateCvv = (value) => /^\d{3,4}$/.test(value);
 
   const handlePayment = async () => {
@@ -90,7 +83,6 @@ function PaymentModal({ open, onClose, totalAmount, cartId, onPaymentSuccess }) 
 
     setLoading(true);
     try {
-      // 1. Process payment
       const paymentPayload = {
         cart: cartId,
         payment: totalAmount,
@@ -98,12 +90,10 @@ function PaymentModal({ open, onClose, totalAmount, cartId, onPaymentSuccess }) 
         card_number: cardNumber.replace(/\s/g, ""),
         exp_date: expDate.trim(),
         cvv: cvv.trim(),
-        email: userEmail, // Pass email to backend for sending confirmation
+        email: userEmail,
       };
 
       await axiosInstance.post("/payment/add", paymentPayload);
-
-      // 2. Update cart status to 'payed' AFTER payment success
       await axiosInstance.put(`/cart/update/${cartId}`, { status: "payed" });
 
       setSuccessMsg("Payment successful!");
@@ -127,94 +117,142 @@ function PaymentModal({ open, onClose, totalAmount, cartId, onPaymentSuccess }) 
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="xs" fullWidth>
-      <DialogTitle sx={{ fontWeight: "bold", fontSize: "1.5rem", textAlign: "center" }}>
+    <Dialog
+      open={open}
+      onClose={handleClose}
+      maxWidth="xs"
+      fullWidth
+      PaperProps={{
+        sx: { bgcolor: "white", color: "black", borderRadius: 3 },
+      }}
+    >
+      <DialogTitle sx={{ fontWeight: "bold", fontSize: "1.5rem", textAlign: "center", color: "black" }}>
         Secure Payment
       </DialogTitle>
+
       <DialogContent>
-        <Typography gutterBottom variant="body1" sx={{ textAlign: "center", mb: 3, color: "text.secondary" }}>
-          Enter your card details to complete the payment of <strong>${totalAmount.toFixed(2)}</strong>.
+        <Typography gutterBottom variant="body1" sx={{ textAlign: "center", mb: 3, color: "black" }}>
+          Enter your card details to complete the payment of{" "}
+          <strong style={{ color: "red" }}>${totalAmount.toFixed(2)}</strong>.
         </Typography>
 
         <Box component="form" noValidate autoComplete="off" sx={{ mt: 1 }}>
-          <TextField
-            label="Card Holder Name"
-            variant="outlined"
-            fullWidth
-            margin="normal"
-            value={cardHolder}
-            onChange={(e) => setCardHolder(e.target.value)}
-            disabled={loading}
-            error={!!errors.cardHolder}
-            helperText={errors.cardHolder}
-            inputProps={{ maxLength: 50 }}
-          />
-
-          <TextField
-            label="Card Number"
-            variant="outlined"
-            fullWidth
-            margin="normal"
-            value={cardNumber}
-            onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
-            disabled={loading}
-            error={!!errors.cardNumber}
-            helperText={errors.cardNumber || "Enter 13 to 19 digits"}
-            inputProps={{ maxLength: 23 /* 19 digits + spaces */ }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <CreditCardIcon color="action" />
-                </InputAdornment>
-              ),
-            }}
-          />
-
-          <Box sx={{ display: "flex", gap: 2, mt: 2 }}>
+          <Paper sx={{ p: 2, borderRadius: 2, bgcolor: "white", mb: 2 }}>
             <TextField
-              label="Expiration Date (MM/YY)"
+              label="Card Holder Name"
               variant="outlined"
-              value={expDate}
-              onChange={(e) => setExpDate(formatExpDate(e.target.value))}
+              fullWidth
+              margin="normal"
+              value={cardHolder}
+              onChange={(e) => setCardHolder(e.target.value)}
               disabled={loading}
-              error={!!errors.expDate}
-              helperText={errors.expDate}
-              inputProps={{ maxLength: 5, placeholder: "MM/YY" }}
-              sx={{ flex: 1 }}
+              error={!!errors.cardHolder}
+              helperText={errors.cardHolder}
+              inputProps={{ maxLength: 50 }}
+              sx={{
+                input: { color: "black" },
+                label: { color: "black" },
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": { borderColor: "red" },
+                  "&:hover fieldset": { borderColor: "red" },
+                  "&.Mui-focused fieldset": { borderColor: "red" },
+                },
+              }}
             />
 
             <TextField
-              label="CVV"
+              label="Card Number"
               variant="outlined"
-              value={cvv}
-              onChange={(e) => setCvv(e.target.value.replace(/\D/g, ""))}
+              fullWidth
+              margin="normal"
+              value={cardNumber}
+              onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
               disabled={loading}
-              error={!!errors.cvv}
-              helperText={errors.cvv}
-              inputProps={{ maxLength: 4, inputMode: "numeric" }}
-              sx={{ flex: 1 }}
+              error={!!errors.cardNumber}
+              helperText={errors.cardNumber || "Enter 13 to 19 digits"}
+              inputProps={{ maxLength: 23 }}
               InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <Tooltip title="3 or 4 digit security code on back of your card">
-                      <IconButton edge="end" tabIndex={-1}>
-                        <HelpOutlineIcon color="action" />
-                      </IconButton>
-                    </Tooltip>
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <CreditCardIcon sx={{ color: "red" }} />
                   </InputAdornment>
                 ),
               }}
+              sx={{
+                input: { color: "black" },
+                label: { color: "black" },
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": { borderColor: "red" },
+                  "&:hover fieldset": { borderColor: "red" },
+                  "&.Mui-focused fieldset": { borderColor: "red" },
+                },
+              }}
             />
-          </Box>
+
+            <Box sx={{ display: "flex", gap: 2, mt: 2 }}>
+              <TextField
+                label="Expiration Date (MM/YY)"
+                variant="outlined"
+                value={expDate}
+                onChange={(e) => setExpDate(formatExpDate(e.target.value))}
+                disabled={loading}
+                error={!!errors.expDate}
+                helperText={errors.expDate}
+                inputProps={{ maxLength: 5, placeholder: "MM/YY" }}
+                sx={{
+                  flex: 1,
+                  input: { color: "black" },
+                  label: { color: "black" },
+                  "& .MuiOutlinedInput-root": {
+                    "& fieldset": { borderColor: "red" },
+                    "&:hover fieldset": { borderColor: "red" },
+                    "&.Mui-focused fieldset": { borderColor: "red" },
+                  },
+                }}
+              />
+
+              <TextField
+                label="CVV"
+                variant="outlined"
+                value={cvv}
+                onChange={(e) => setCvv(e.target.value.replace(/\D/g, ""))}
+                disabled={loading}
+                error={!!errors.cvv}
+                helperText={errors.cvv}
+                inputProps={{ maxLength: 4, inputMode: "numeric" }}
+                sx={{
+                  flex: 1,
+                  input: { color: "black" },
+                  label: { color: "black" },
+                  "& .MuiOutlinedInput-root": {
+                    "& fieldset": { borderColor: "red" },
+                    "&:hover fieldset": { borderColor: "red" },
+                    "&.Mui-focused fieldset": { borderColor: "red" },
+                  },
+                }}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <Tooltip title="3 or 4 digit security code on back of your card">
+                        <IconButton edge="end" tabIndex={-1}>
+                          <HelpOutlineIcon sx={{ color: "red" }} />
+                        </IconButton>
+                      </Tooltip>
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </Box>
+          </Paper>
         </Box>
 
         {error && (
-          <Alert severity="error" sx={{ mt: 3, mb: 1, borderRadius: 1 }}>
+          <Alert severity="error" sx={{ mt: 3, mb: 1, borderRadius: 1, bgcolor: "red", color: "white" }}>
             {error}
           </Alert>
         )}
         {successMsg && (
-          <Alert severity="success" sx={{ mt: 3, mb: 1, borderRadius: 1 }}>
+          <Alert severity="success" sx={{ mt: 3, mb: 1, borderRadius: 1, bgcolor: "red", color: "white" }}>
             {successMsg}
           </Alert>
         )}
@@ -227,17 +265,32 @@ function PaymentModal({ open, onClose, totalAmount, cartId, onPaymentSuccess }) 
           pt: 1,
           display: "flex",
           justifyContent: "space-between",
+          bgcolor: "white",
         }}
       >
-        <Button onClick={handleClose} disabled={loading} variant="outlined" color="inherit">
+        <Button
+          onClick={handleClose}
+          disabled={loading}
+          variant="outlined"
+          sx={{
+            color: "red",
+            borderColor: "red",
+            "&:hover": { bgcolor: "#ffe5e5" },
+          }}
+        >
           Cancel
         </Button>
         <Button
           variant="contained"
-          color="primary"
           onClick={handlePayment}
           disabled={loading}
-          sx={{ minWidth: 140, fontWeight: "bold" }}
+          sx={{
+            minWidth: 140,
+            fontWeight: "bold",
+            bgcolor: "red",
+            color: "white",
+            "&:hover": { bgcolor: "#b71c1c" },
+          }}
         >
           {loading ? "Processing..." : "Confirm Payment"}
         </Button>
@@ -247,3 +300,4 @@ function PaymentModal({ open, onClose, totalAmount, cartId, onPaymentSuccess }) 
 }
 
 export default PaymentModal;
+

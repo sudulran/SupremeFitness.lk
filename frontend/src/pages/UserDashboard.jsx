@@ -35,7 +35,6 @@ import {
   DialogContent,
   DialogActions,
   FormControlLabel,
-  Checkbox,
   Switch,
   Divider,
   Autocomplete
@@ -43,17 +42,19 @@ import {
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
-import ViewListIcon from '@mui/icons-material/ViewList';
 import SearchIcon from '@mui/icons-material/Search';
-import FilterListIcon from '@mui/icons-material/FilterList';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
-import VisibilityIcon from '@mui/icons-material/Visibility';
 import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import SettingsIcon from '@mui/icons-material/Settings';
 import PersonIcon from '@mui/icons-material/Person';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import RecommendIcon from '@mui/icons-material/Recommend';
+import InventoryIcon from '@mui/icons-material/Inventory';
+import CategoryIcon from '@mui/icons-material/Category';
+import BrandingWatermarkIcon from '@mui/icons-material/BrandingWatermark';
+
+import Footer from '../components/Footer';
 
 function UserDashboard() {
   const theme = useTheme();
@@ -64,7 +65,7 @@ function UserDashboard() {
     marginLeft: !isMobile ? `${sidebarWidth}px` : '0',
     transition: 'margin-left 0.3s ease',
     minHeight: '100vh',
-    backgroundColor: '#f8fafc',
+    backgroundColor: '#000000',
   };
 
   const [products, setProducts] = useState([]);
@@ -88,7 +89,6 @@ function UserDashboard() {
   });
   const [showRecommendations, setShowRecommendations] = useState(true);
 
-  // Predefined preference options
   const availableKeywords = [
     'organic', 'premium', 'eco-friendly', 'wireless', 'smart', 'portable',
     'durable', 'lightweight', 'waterproof', 'vintage', 'modern', 'luxury',
@@ -114,9 +114,8 @@ function UserDashboard() {
       const response = await axiosInstance.get('/products/');
       const productsWithRatings = response.data.map(product => ({
         ...product,
-        rating: Math.random() * 2 + 3, // Mock rating between 3-5
+        rating: Math.random() * 2 + 3,
         reviewCount: Math.floor(Math.random() * 100) + 10,
-        // Mock description if not available
         description: product.description || `High-quality ${product.name.toLowerCase()} perfect for your needs. Features excellent build quality and great value for money.`,
       }));
       
@@ -160,22 +159,18 @@ function UserDashboard() {
     let score = 0;
     const { categories, keywords, brands, priceRange } = userPreferences;
 
-    // Category preference
     if (categories.includes(product.category)) {
       score += 30;
     }
 
-    // Brand preference
     if (brands.includes(product.brand)) {
       score += 20;
     }
 
-    // Price range preference
     if (product.price >= priceRange.min && product.price <= priceRange.max) {
       score += 15;
     }
 
-    // Keyword matching in name and description
     const productText = `${product.name} ${product.description} ${product.category}`.toLowerCase();
     keywords.forEach(keyword => {
       if (productText.includes(keyword.toLowerCase())) {
@@ -183,7 +178,6 @@ function UserDashboard() {
       }
     });
 
-    // Bonus for favorites
     if (favorites.has(product._id)) {
       score += 25;
     }
@@ -219,7 +213,6 @@ function UserDashboard() {
       return matchesSearch && matchesCategory;
     });
 
-    // Sort products
     filtered.sort((a, b) => {
       switch (sortBy) {
         case 'price-low':
@@ -341,15 +334,20 @@ function UserDashboard() {
   };
 
   const LoadingSkeleton = () => (
-    <Grid container spacing={3}>
+    <Grid container spacing={1.5}>
       {[...Array(8)].map((_, index) => (
         <Grid item xs={12} sm={6} md={4} lg={3} key={index}>
-          <Card sx={{ maxWidth: 320 }}>
-            <Skeleton variant="rectangular" height={200} />
-            <CardContent>
-              <Skeleton variant="text" sx={{ fontSize: '1.5rem' }} />
-              <Skeleton variant="text" />
-              <Skeleton variant="text" width="60%" />
+          <Card sx={{ 
+            maxWidth: 260,
+            margin: 'auto',
+            backgroundColor: "#0a1929",
+            border: "1px solid #1e3a5f"
+          }}>
+            <Skeleton variant="rectangular" height={160} sx={{ backgroundColor: "#1e3a5f" }} />
+            <CardContent sx={{ p: 1.5 }}>
+              <Skeleton variant="text" sx={{ fontSize: '1rem', backgroundColor: "#1e3a5f" }} />
+              <Skeleton variant="text" sx={{ backgroundColor: "#1e3a5f" }} />
+              <Skeleton variant="text" width="60%" sx={{ backgroundColor: "#1e3a5f" }} />
             </CardContent>
           </Card>
         </Grid>
@@ -360,75 +358,88 @@ function UserDashboard() {
   const ProductCard = ({ product, isRecommended = false }) => (
     <Card 
       sx={{ 
-        maxWidth: 320, 
+        maxWidth: 260, 
         margin: 'auto',
         transition: 'all 0.3s ease',
+        backgroundColor: "#0a1929",
+        border: isRecommended ? "1px solid #dc2626" : "1px solid #1e3a5f",
+        borderRadius: "8px",
+        boxShadow: isRecommended ? "0 0 15px rgba(220, 38, 38, 0.3)" : "none",
         '&:hover': {
           transform: 'translateY(-4px)',
-          boxShadow: theme.shadows[8]
+          boxShadow: "0 6px 20px rgba(220, 38, 38, 0.3)",
+          borderColor: "#dc2626"
         },
         position: 'relative',
         height: '100%',
         display: 'flex',
-        flexDirection: 'column',
-        border: isRecommended ? '2px solid' : '1px solid',
-        borderColor: isRecommended ? theme.palette.primary.main : 'divider'
+        flexDirection: 'column'
       }}
     >
-      {/* Recommendation Badge */}
       {isRecommended && (
         <Chip
-          icon={<RecommendIcon />}
-          label="Recommended for You"
-          color="primary"
+          icon={<RecommendIcon sx={{ fontSize: '14px' }} />}
+          label="Recommended"
           size="small"
           sx={{ 
             position: 'absolute', 
-            top: 8, 
-            left: 8, 
+            top: 6, 
+            left: 6, 
             zIndex: 2,
             fontWeight: 'bold',
-            backgroundColor: theme.palette.primary.main,
-            color: 'white'
+            backgroundColor: "#dc2626",
+            color: 'white',
+            border: "1px solid #ffffff",
+            fontSize: '0.65rem',
+            height: '20px'
           }}
         />
       )}
       
-      {/* Stock Status Badge */}
       <Chip
+        icon={<InventoryIcon sx={{ fontSize: '14px' }} />}
         label={product.qty > 10 ? 'In Stock' : product.qty > 0 ? 'Low Stock' : 'Out of Stock'}
-        color={product.qty > 10 ? 'success' : product.qty > 0 ? 'warning' : 'error'}
         size="small"
         sx={{ 
           position: 'absolute', 
-          top: isRecommended ? 40 : 8, 
-          left: 8, 
+          top: isRecommended ? 28 : 6, 
+          right: 6, 
           zIndex: 1,
-          fontWeight: 'bold'
+          fontWeight: 'bold',
+          backgroundColor: product.qty > 10 ? "#22c55e" : product.qty > 0 ? "#f59e0b" : "#dc2626",
+          color: product.qty > 10 ? "#000000" : "#ffffff",
+          border: "1px solid #ffffff",
+          fontSize: '0.65rem',
+          height: '20px'
         }}
       />
       
-      {/* Favorite Button */}
       <IconButton
         onClick={() => toggleFavorite(product._id)}
         sx={{ 
           position: 'absolute', 
-          top: 8, 
-          right: 8, 
+          top: 6, 
+          left: isRecommended ? 95 : 6, 
           zIndex: 1,
-          backgroundColor: 'rgba(255,255,255,0.9)',
-          '&:hover': { backgroundColor: 'rgba(255,255,255,1)' }
+          backgroundColor: 'rgba(0,0,0,0.8)',
+          border: "1px solid #1e3a5f",
+          width: '28px',
+          height: '28px',
+          '&:hover': { 
+            backgroundColor: 'rgba(220, 38, 38, 0.9)',
+            borderColor: "#dc2626"
+          }
         }}
       >
         {favorites.has(product._id) ? 
-          <FavoriteIcon color="error" /> : 
-          <FavoriteBorderIcon />
+          <FavoriteIcon sx={{ color: "#dc2626", fontSize: '16px' }} /> : 
+          <FavoriteBorderIcon sx={{ color: "#ffffff", fontSize: '16px' }} />
         }
       </IconButton>
 
       <CardMedia
         component="img"
-        height="200"
+        height="160"
         image={product.img_src || 'https://placehold.co/250x200'}
         alt={product.name}
         sx={{
@@ -438,32 +449,36 @@ function UserDashboard() {
         }}
       />
       
-      <CardContent sx={{ flexGrow: 1, pb: 1 }}>
+      <CardContent sx={{ flexGrow: 1, pb: 0.5, px: 1.5 }}>
         <Typography 
           variant="h6" 
           sx={{ 
             fontWeight: 600,
-            mb: 1,
+            mb: 0.5,
+            color: "#ffffff",
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             display: '-webkit-box',
             WebkitLineClamp: 2,
-            WebkitBoxOrient: 'vertical'
+            WebkitBoxOrient: 'vertical',
+            fontSize: '0.9rem',
+            lineHeight: '1.2'
           }}
         >
           {product.name}
         </Typography>
         
         <Typography 
-          variant="body2" 
-          color="text.secondary"
+          variant="body2"
           sx={{ 
             mb: 1,
+            color: "#9ca3af",
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             display: '-webkit-box',
             WebkitLineClamp: 2,
-            WebkitBoxOrient: 'vertical'
+            WebkitBoxOrient: 'vertical',
+            fontSize: '0.75rem'
           }}
         >
           {product.description}
@@ -475,61 +490,102 @@ function UserDashboard() {
             precision={0.1} 
             readOnly 
             size="small"
-            sx={{ mr: 1 }}
+            sx={{ 
+              mr: 0.5,
+              '& .MuiRating-iconFilled': {
+                color: '#ffd700'
+              },
+              fontSize: '16px'
+            }}
           />
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" sx={{ color: "#9ca3af", fontSize: '0.75rem' }}>
             ({product.reviewCount})
           </Typography>
         </Box>
         
-        <Box sx={{ display: 'flex', gap: 1, mb: 1, flexWrap: 'wrap' }}>
+        <Box sx={{ display: 'flex', gap: 0.5, mb: 1, flexWrap: 'wrap' }}>
           <Chip
-            icon={<LocalOfferIcon />}
+            icon={<CategoryIcon sx={{ color: "#ffffff !important", fontSize: '12px' }} />}
             label={product.category}
-            variant="outlined"
             size="small"
+            sx={{
+              backgroundColor: "#1e3a5f",
+              color: "#ffffff",
+              border: "1px solid #dc2626",
+              fontWeight: 500,
+              fontSize: '0.65rem',
+              height: '20px'
+            }}
           />
           <Chip
+            icon={<BrandingWatermarkIcon sx={{ color: "#ffffff !important", fontSize: '12px' }} />}
             label={product.brand}
-            variant="outlined"
             size="small"
-            color="secondary"
+            sx={{
+              backgroundColor: "#000000",
+              color: "#ffffff",
+              border: "1px solid #9ca3af",
+              fontWeight: 500,
+              fontSize: '0.65rem',
+              height: '20px'
+            }}
           />
         </Box>
         
         <Typography 
-          variant="h5" 
-          color="primary" 
-          sx={{ fontWeight: 700, mb: 1 }}
+          variant="h5"
+          sx={{ 
+            fontWeight: 700, 
+            mb: 0.5,
+            color: "#dc2626",
+            fontSize: "1.1rem"
+          }}
         >
           ${product.price}
         </Typography>
         
-        <Typography variant="body2" color="text.secondary">
-          <strong>Available:</strong> {product.qty} units
+        <Typography variant="body2" sx={{ color: "#9ca3af", fontSize: '0.75rem' }}>
+          <strong style={{ color: "#ffffff" }}>Available:</strong> {product.qty} units
         </Typography>
       </CardContent>
       
       <CardActions sx={{ 
         justifyContent: 'space-between', 
-        padding: '8px 16px 16px',
-        borderTop: '1px solid',
-        borderColor: 'divider'
+        padding: '6px 12px 12px',
+        borderTop: '1px solid #1e3a5f'
       }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
           <IconButton 
             onClick={() => handleQuantityChange(product._id, -1)}
             size="small"
             disabled={quantities[product._id] <= 1}
+            sx={{
+              border: "1px solid #1e3a5f",
+              color: "#ffffff",
+              backgroundColor: "#0a1929",
+              width: '24px',
+              height: '24px',
+              "&:hover": {
+                borderColor: "#dc2626",
+                backgroundColor: "rgba(220, 38, 38, 0.1)"
+              },
+              "&:disabled": {
+                borderColor: "#1e3a5f",
+                color: "#4b5563",
+                opacity: 0.5
+              }
+            }}
           >
-            <RemoveIcon />
+            <RemoveIcon sx={{ fontSize: '12px' }} />
           </IconButton>
           <Typography 
             component="span" 
             sx={{ 
-              minWidth: '24px', 
+              minWidth: '16px', 
               textAlign: 'center',
-              fontWeight: 600
+              fontWeight: 600,
+              color: "#ffffff",
+              fontSize: '0.8rem'
             }}
           >
             {quantities[product._id] || 1}
@@ -537,20 +593,46 @@ function UserDashboard() {
           <IconButton 
             onClick={() => handleQuantityChange(product._id, 1)}
             size="small"
+            sx={{
+              border: "1px solid #1e3a5f",
+              color: "#ffffff",
+              backgroundColor: "#0a1929",
+              width: '24px',
+              height: '24px',
+              "&:hover": {
+                borderColor: "#dc2626",
+                backgroundColor: "rgba(220, 38, 38, 0.1)"
+              }
+            }}
           >
-            <AddIcon />
+            <AddIcon sx={{ fontSize: '12px' }} />
           </IconButton>
         </Box>
         
         <Button
           variant="contained"
-          startIcon={<ShoppingCartIcon />}
+          startIcon={<ShoppingCartIcon sx={{ fontSize: '16px' }} />}
           onClick={() => handleAddToCart(product)}
           disabled={product.qty === 0}
           sx={{
-            borderRadius: '20px',
+            borderRadius: '16px',
             textTransform: 'none',
-            fontWeight: 600
+            fontWeight: 600,
+            backgroundColor: "#dc2626",
+            color: "#ffffff",
+            boxShadow: "0 2px 8px rgba(220, 38, 38, 0.3)",
+            fontSize: '0.7rem',
+            px: 1,
+            minWidth: '100px',
+            height: '32px',
+            "&:hover": {
+              backgroundColor: "#b91c1c",
+              boxShadow: "0 4px 12px rgba(220, 38, 38, 0.4)"
+            },
+            "&:disabled": {
+              backgroundColor: "#4b5563",
+              color: "#9ca3af"
+            }
           }}
         >
           Add to Cart
@@ -559,20 +641,37 @@ function UserDashboard() {
     </Card>
   );
 
+  // ADDED MISSING PreferencesDialog COMPONENT
   const PreferencesDialog = () => (
     <Dialog 
       open={preferencesOpen} 
       onClose={() => setPreferencesOpen(false)}
-      maxWidth="md"
+      maxWidth="sm"
       fullWidth
+      PaperProps={{
+        sx: {
+          backgroundColor: "#000000",
+          border: "1px solid #dc2626",
+          borderRadius: "8px",
+          maxWidth: '500px'
+        }
+      }}
     >
-      <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <PersonIcon color="primary" />
+      <DialogTitle sx={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        gap: 1,
+        backgroundColor: "#0a1929",
+        color: "#ffffff",
+        borderBottom: "1px solid #dc2626",
+        p: 2,
+        fontSize: '1.1rem'
+      }}>
+        <PersonIcon sx={{ color: "#dc2626", fontSize: '20px' }} />
         Your Shopping Preferences
       </DialogTitle>
-      <DialogContent>
-        <Box sx={{ mt: 2 }}>
-          {/* Enable Recommendations */}
+      <DialogContent sx={{ backgroundColor: "#000000", pt: 2, pb: 1 }}>
+        <Box sx={{ mt: 1 }}>
           <FormControlLabel
             control={
               <Switch
@@ -581,16 +680,24 @@ function UserDashboard() {
                   ...prev,
                   enableRecommendations: e.target.checked
                 }))}
+                size="small"
+                sx={{
+                  '& .MuiSwitch-switchBase.Mui-checked': {
+                    color: '#dc2626',
+                  },
+                  '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                    backgroundColor: '#dc2626',
+                  }
+                }}
               />
             }
             label="Enable personalized recommendations"
-            sx={{ mb: 3 }}
+            sx={{ mb: 2, color: "#ffffff", fontSize: '0.875rem' }}
           />
 
-          <Divider sx={{ my: 2 }} />
+          <Divider sx={{ my: 1.5, backgroundColor: "#1e3a5f", height: "1px" }} />
 
-          {/* Categories */}
-          <Typography variant="h6" gutterBottom>
+          <Typography variant="h6" gutterBottom sx={{ color: "#ffffff", fontSize: '0.95rem', mb: 1 }}>
             Preferred Categories
           </Typography>
           <Autocomplete
@@ -605,7 +712,17 @@ function UserDashboard() {
             }}
             renderTags={(value, getTagProps) =>
               value.map((option, index) => (
-                <Chip variant="outlined" label={option} {...getTagProps({ index })} />
+                <Chip 
+                  variant="outlined" 
+                  label={option} 
+                  {...getTagProps({ index })}
+                  sx={{
+                    backgroundColor: "#1e3a5f",
+                    color: "#ffffff",
+                    border: "1px solid #dc2626",
+                    fontSize: '0.75rem'
+                  }}
+                />
               ))
             }
             renderInput={(params) => (
@@ -613,13 +730,36 @@ function UserDashboard() {
                 {...params}
                 variant="outlined"
                 placeholder="Select categories you're interested in"
+                size="small"
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    backgroundColor: "#0a1929",
+                    color: "#ffffff",
+                    "& fieldset": {
+                      borderColor: "#1e3a5f"
+                    },
+                    "&:hover fieldset": {
+                      borderColor: "#dc2626"
+                    },
+                    "&.Mui-focused fieldset": {
+                      borderColor: "#dc2626"
+                    }
+                  },
+                  "& input": {
+                    color: "#ffffff",
+                    fontSize: '0.875rem'
+                  },
+                  "& input::placeholder": {
+                    color: "#9ca3af",
+                    opacity: 1
+                  }
+                }}
               />
             )}
-            sx={{ mb: 3 }}
+            sx={{ mb: 2 }}
           />
 
-          {/* Brands */}
-          <Typography variant="h6" gutterBottom>
+          <Typography variant="h6" gutterBottom sx={{ color: "#ffffff", fontSize: '0.95rem', mb: 1 }}>
             Preferred Brands
           </Typography>
           <Autocomplete
@@ -634,7 +774,17 @@ function UserDashboard() {
             }}
             renderTags={(value, getTagProps) =>
               value.map((option, index) => (
-                <Chip variant="outlined" label={option} {...getTagProps({ index })} />
+                <Chip 
+                  variant="outlined" 
+                  label={option} 
+                  {...getTagProps({ index })}
+                  sx={{
+                    backgroundColor: "#1e3a5f",
+                    color: "#ffffff",
+                    border: "1px solid #dc2626",
+                    fontSize: '0.75rem'
+                  }}
+                />
               ))
             }
             renderInput={(params) => (
@@ -642,13 +792,36 @@ function UserDashboard() {
                 {...params}
                 variant="outlined"
                 placeholder="Select preferred brands"
+                size="small"
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    backgroundColor: "#0a1929",
+                    color: "#ffffff",
+                    "& fieldset": {
+                      borderColor: "#1e3a5f"
+                    },
+                    "&:hover fieldset": {
+                      borderColor: "#dc2626"
+                    },
+                    "&.Mui-focused fieldset": {
+                      borderColor: "#dc2626"
+                    }
+                  },
+                  "& input": {
+                    color: "#ffffff",
+                    fontSize: '0.875rem'
+                  },
+                  "& input::placeholder": {
+                    color: "#9ca3af",
+                    opacity: 1
+                  }
+                }}
               />
             )}
-            sx={{ mb: 3 }}
+            sx={{ mb: 2 }}
           />
 
-          {/* Keywords */}
-          <Typography variant="h6" gutterBottom>
+          <Typography variant="h6" gutterBottom sx={{ color: "#ffffff", fontSize: '0.95rem', mb: 1 }}>
             Interest Keywords
           </Typography>
           <Autocomplete
@@ -664,24 +837,57 @@ function UserDashboard() {
             }}
             renderTags={(value, getTagProps) =>
               value.map((option, index) => (
-                <Chip variant="outlined" label={option} {...getTagProps({ index })} />
+                <Chip 
+                  variant="outlined" 
+                  label={option} 
+                  {...getTagProps({ index })}
+                  sx={{
+                    backgroundColor: "#1e3a5f",
+                    color: "#ffffff",
+                    border: "1px solid #dc2626",
+                    fontSize: '0.75rem'
+                  }}
+                />
               ))
             }
             renderInput={(params) => (
               <TextField
                 {...params}
                 variant="outlined"
-                placeholder="Add keywords that interest you (e.g., premium, wireless, eco-friendly)"
+                placeholder="Add keywords that interest you"
+                size="small"
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    backgroundColor: "#0a1929",
+                    color: "#ffffff",
+                    "& fieldset": {
+                      borderColor: "#1e3a5f"
+                    },
+                    "&:hover fieldset": {
+                      borderColor: "#dc2626"
+                    },
+                    "&.Mui-focused fieldset": {
+                      borderColor: "#dc2626"
+                    }
+                  },
+                  "& input": {
+                    color: "#ffffff",
+                    fontSize: '0.875rem'
+                  },
+                  "& input::placeholder": {
+                    color: "#9ca3af",
+                    opacity: 1
+                  }
+                }}
               />
             )}
-            sx={{ mb: 3 }}
+            sx={{ mb: 2 }}
           />
 
-          {/* Price Range */}
-          <Typography variant="h6" gutterBottom>
+          <Typography variant="h6" gutterBottom sx={{ color: "#ffffff", fontSize: '0.95rem', mb: 1 }}>
             Price Range
           </Typography>
-          <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+          <Box sx={{ display: 'flex', gap: 1.5, mb: 1 }}>
             <TextField
               label="Min Price"
               type="number"
@@ -690,8 +896,35 @@ function UserDashboard() {
                 ...prev,
                 priceRange: { ...prev.priceRange, min: Number(e.target.value) }
               }))}
+              size="small"
               InputProps={{
-                startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                startAdornment: <InputAdornment position="start" sx={{ color: "#9ca3af" }}>$</InputAdornment>,
+              }}
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  backgroundColor: "#0a1929",
+                  color: "#ffffff",
+                  "& fieldset": {
+                    borderColor: "#1e3a5f"
+                  },
+                  "&:hover fieldset": {
+                    borderColor: "#dc2626"
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderColor: "#dc2626"
+                  }
+                },
+                "& .MuiInputLabel-root": {
+                  color: "#9ca3af",
+                  fontSize: '0.875rem'
+                },
+                "& .MuiInputLabel-root.Mui-focused": {
+                  color: "#dc2626"
+                },
+                "& input": {
+                  color: "#ffffff",
+                  fontSize: '0.875rem'
+                }
               }}
             />
             <TextField
@@ -702,15 +935,58 @@ function UserDashboard() {
                 ...prev,
                 priceRange: { ...prev.priceRange, max: Number(e.target.value) }
               }))}
+              size="small"
               InputProps={{
-                startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                startAdornment: <InputAdornment position="start" sx={{ color: "#9ca3af" }}>$</InputAdornment>,
+              }}
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  backgroundColor: "#0a1929",
+                  color: "#ffffff",
+                  "& fieldset": {
+                    borderColor: "#1e3a5f"
+                  },
+                  "&:hover fieldset": {
+                    borderColor: "#dc2626"
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderColor: "#dc2626"
+                  }
+                },
+                "& .MuiInputLabel-root": {
+                  color: "#9ca3af",
+                  fontSize: '0.875rem'
+                },
+                "& .MuiInputLabel-root.Mui-focused": {
+                  color: "#dc2626"
+                },
+                "& input": {
+                  color: "#ffffff",
+                  fontSize: '0.875rem'
+                }
               }}
             />
           </Box>
         </Box>
       </DialogContent>
-      <DialogActions>
-        <Button onClick={() => setPreferencesOpen(false)}>
+      <DialogActions sx={{
+        backgroundColor: "#0a1929",
+        borderTop: "1px solid #1e3a5f",
+        p: 1.5
+      }}>
+        <Button 
+          onClick={() => setPreferencesOpen(false)}
+          size="small"
+          sx={{
+            color: "#ffffff",
+            borderColor: "#9ca3af",
+            fontSize: '0.875rem',
+            "&:hover": {
+              borderColor: "#ffffff",
+              backgroundColor: "rgba(255, 255, 255, 0.1)"
+            }
+          }}
+        >
           Cancel
         </Button>
         <Button 
@@ -719,6 +995,16 @@ function UserDashboard() {
             setPreferencesOpen(false);
           }}
           variant="contained"
+          size="small"
+          sx={{
+            backgroundColor: "#dc2626",
+            color: "#ffffff",
+            fontWeight: 600,
+            fontSize: '0.875rem',
+            "&:hover": {
+              backgroundColor: "#b91c1c"
+            }
+          }}
         >
           Save Preferences
         </Button>
@@ -727,31 +1013,51 @@ function UserDashboard() {
   );
 
   return (
+    <>
     <div className="bootstrap-scope">
-      <Box sx={{margin: '50px'}}>
-        <Container maxWidth="xl" sx={{ py: 3 }}>
+      <Box sx={{ 
+        margin: '0px', 
+        backgroundColor: "#000000", 
+        minHeight: "100vh",
+      }}>
+        <Container maxWidth="lg" sx={{ 
+          py: 2, 
+          backgroundColor: "#000000", 
+          maxWidth: '1100px',
+          margin: '0 auto'
+        }}>
           {/* Header Section */}
           <Paper 
             elevation={0}
             sx={{ 
-              p: 3, 
-              mb: 3, 
-              background: 'linear-gradient(135deg, #f35b89ff 0%, #b82d2dff 100%)',
+              p: 2, 
+              mb: 2, 
+              background: "linear-gradient(135deg, #dc2626 0%, #7f1d1d 100%)",
               color: 'white',
-              borderRadius: 2
+              borderRadius: 2,
+              border: "1px solid #dc2626",
+              boxShadow: "0 4px 16px rgba(220, 38, 38, 0.4)",
+              maxWidth: '100%'
             }}
           >
-            <Typography variant="h3" gutterBottom sx={{ fontWeight: 700 }}>
+            <Typography variant="h4" gutterBottom sx={{ fontWeight: 700, fontSize: { xs: '1.5rem', md: '2rem' } }}>
               Our Products
             </Typography>
-            <Typography variant="h6" sx={{ opacity: 0.9 }}>
+            <Typography variant="body1" sx={{ opacity: 0.9, fontSize: '0.9rem' }}>
               Discover amazing products tailored to your preferences
             </Typography>
           </Paper>
 
           {/* Controls Section */}
-          <Paper sx={{ p: 2, mb: 3, borderRadius: 2 }}>
-            <Grid container spacing={2} alignItems="center">
+          <Paper sx={{ 
+            p: 1.5, 
+            mb: 2, 
+            borderRadius: 1,
+            backgroundColor: "#0a1929",
+            border: "1px solid #1e3a5f",
+            maxWidth: '100%'
+          }}>
+            <Grid container spacing={1.5} alignItems="center">
               <Grid item xs={12} md={3}>
                 <TextField
                   fullWidth
@@ -759,23 +1065,87 @@ function UserDashboard() {
                   variant="outlined"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
+                  size="small"
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
-                        <SearchIcon />
+                        <SearchIcon sx={{ color: "#9ca3af", fontSize: '18px' }} />
                       </InputAdornment>
                     ),
+                  }}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      backgroundColor: "#000000",
+                      color: "#ffffff",
+                      borderRadius: "6px",
+                      "& fieldset": {
+                        borderColor: "#1e3a5f"
+                      },
+                      "&:hover fieldset": {
+                        borderColor: "#dc2626"
+                      },
+                      "&.Mui-focused fieldset": {
+                        borderColor: "#dc2626",
+                        boxShadow: "0 0 0 2px rgba(220, 38, 38, 0.1)"
+                      },
+                      "& input": {
+                        color: "#ffffff",
+                        fontSize: '0.875rem'
+                      },
+                      "& input::placeholder": {
+                        color: "#9ca3af",
+                        opacity: 1
+                      }
+                    }
                   }}
                 />
               </Grid>
               
               <Grid item xs={12} md={2}>
-                <FormControl fullWidth>
-                  <InputLabel>Category</InputLabel>
+                <FormControl fullWidth size="small">
+                  <InputLabel sx={{ color: "#9ca3af", "&.Mui-focused": { color: "#dc2626" }, fontSize: '0.875rem' }}>Category</InputLabel>
                   <Select
                     value={categoryFilter}
                     label="Category"
                     onChange={(e) => setCategoryFilter(e.target.value)}
+                    sx={{
+                      backgroundColor: "#000000",
+                      color: "#ffffff",
+                      borderRadius: "6px",
+                      "& .MuiOutlinedInput-notchedOutline": {
+                        borderColor: "#1e3a5f"
+                      },
+                      "&:hover .MuiOutlinedInput-notchedOutline": {
+                        borderColor: "#dc2626"
+                      },
+                      "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                        borderColor: "#dc2626"
+                      },
+                      "& .MuiSvgIcon-root": {
+                        color: "#ffffff"
+                      }
+                    }}
+                    MenuProps={{
+                      PaperProps: {
+                        sx: {
+                          backgroundColor: "#0a1929",
+                          border: "1px solid #1e3a5f",
+                          "& .MuiMenuItem-root": {
+                            color: "#ffffff",
+                            fontSize: '0.875rem',
+                            "&:hover": {
+                              backgroundColor: "#1e3a5f"
+                            },
+                            "&.Mui-selected": {
+                              backgroundColor: "#dc2626",
+                              "&:hover": {
+                                backgroundColor: "#b91c1c"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }}
                   >
                     <MenuItem value="all">All Categories</MenuItem>
                     {getUniqueCategories().map(category => (
@@ -788,12 +1158,50 @@ function UserDashboard() {
               </Grid>
               
               <Grid item xs={12} md={2}>
-                <FormControl fullWidth>
-                  <InputLabel>Sort By</InputLabel>
+                <FormControl fullWidth size="small">
+                  <InputLabel sx={{ color: "#9ca3af", "&.Mui-focused": { color: "#dc2626" }, fontSize: '0.875rem' }}>Sort By</InputLabel>
                   <Select
                     value={sortBy}
                     label="Sort By"
                     onChange={(e) => setSortBy(e.target.value)}
+                    sx={{
+                      backgroundColor: "#000000",
+                      color: "#ffffff",
+                      borderRadius: "6px",
+                      "& .MuiOutlinedInput-notchedOutline": {
+                        borderColor: "#1e3a5f"
+                      },
+                      "&:hover .MuiOutlinedInput-notchedOutline": {
+                        borderColor: "#dc2626"
+                      },
+                      "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                        borderColor: "#dc2626"
+                      },
+                      "& .MuiSvgIcon-root": {
+                        color: "#ffffff"
+                      }
+                    }}
+                    MenuProps={{
+                      PaperProps: {
+                        sx: {
+                          backgroundColor: "#0a1929",
+                          border: "1px solid #1e3a5f",
+                          "& .MuiMenuItem-root": {
+                            color: "#ffffff",
+                            fontSize: '0.875rem',
+                            "&:hover": {
+                              backgroundColor: "#1e3a5f"
+                            },
+                            "&.Mui-selected": {
+                              backgroundColor: "#dc2626",
+                              "&:hover": {
+                                backgroundColor: "#b91c1c"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }}
                   >
                     <MenuItem value="relevance">Relevance</MenuItem>
                     <MenuItem value="name">Name</MenuItem>
@@ -808,13 +1216,21 @@ function UserDashboard() {
                 <Button
                   fullWidth
                   variant="outlined"
-                  startIcon={<SettingsIcon />}
+                  startIcon={<SettingsIcon sx={{ fontSize: '18px' }} />}
                   onClick={() => setPreferencesOpen(true)}
+                  size="small"
                   sx={{ 
-                    height: '56px',
+                    height: '40px',
                     textTransform: 'none',
                     fontWeight: 600,
-                    borderRadius: '12px'
+                    borderRadius: '6px',
+                    color: "#ffffff",
+                    borderColor: "#9ca3af",
+                    fontSize: '0.875rem',
+                    "&:hover": {
+                      borderColor: "#dc2626",
+                      backgroundColor: "rgba(220, 38, 38, 0.1)"
+                    }
                   }}
                 >
                   Preferences
@@ -826,37 +1242,39 @@ function UserDashboard() {
                   fullWidth
                   variant="contained"
                   onClick={() => setCartOpen(true)}
+                  size="small"
                   sx={{ 
-                    height: '56px',
-                    background: 'linear-gradient(45deg, #FF6B6B, #FF8E53)',
+                    height: '40px',
+                    background: '#dc2626',
                     color: 'white',
                     fontWeight: 600,
-                    borderRadius: '12px',
+                    borderRadius: '6px',
                     textTransform: 'none',
-                    boxShadow: '0 4px 15px rgba(255, 107, 107, 0.3)',
+                    boxShadow: '0 2px 8px rgba(220, 38, 38, 0.4)',
+                    fontSize: '0.875rem',
                     '&:hover': {
-                      background: 'linear-gradient(45deg, #FF5252, #FF7043)',
-                      boxShadow: '0 6px 20px rgba(255, 107, 107, 0.4)',
-                      transform: 'translateY(-2px)'
+                      background: '#b91c1c',
+                      boxShadow: '0 4px 12px rgba(220, 38, 38, 0.5)',
+                      transform: 'translateY(-1px)'
                     },
                     transition: 'all 0.3s ease'
                   }}
                   startIcon={
                     <Badge 
                       badgeContent={cartItemCount} 
-                      color="warning"
                       sx={{
                         '& .MuiBadge-badge': {
-                          backgroundColor: '#FFF',
-                          color: '#FF6B6B',
+                          backgroundColor: '#000000',
+                          color: '#ffffff',
                           fontWeight: 'bold',
                           fontSize: '0.7rem',
                           minWidth: '18px',
-                          height: '18px'
+                          height: '18px',
+                          border: "1px solid #dc2626"
                         }
                       }}
                     >
-                      <ShoppingCartIcon />
+                      <ShoppingCartIcon sx={{ fontSize: '18px' }} />
                     </Badge>
                   }
                 >
@@ -869,10 +1287,10 @@ function UserDashboard() {
           {/* Recommendations Section */}
           {userPreferences.enableRecommendations && recommendedProducts.length > 0 && (
             <>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <TrendingUpIcon color="primary" />
-                  <Typography variant="h5" sx={{ fontWeight: 600 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <TrendingUpIcon sx={{ color: "#dc2626", fontSize: '20px' }} />
+                  <Typography variant="h6" sx={{ fontWeight: 600, color: "#ffffff", fontSize: '1.1rem' }}>
                     Recommended for You
                   </Typography>
                 </Box>
@@ -881,37 +1299,55 @@ function UserDashboard() {
                     <Switch
                       checked={showRecommendations}
                       onChange={(e) => setShowRecommendations(e.target.checked)}
+                      size="small"
+                      sx={{
+                        '& .MuiSwitch-switchBase.Mui-checked': {
+                          color: '#dc2626',
+                        },
+                        '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                          backgroundColor: '#dc2626',
+                        }
+                      }}
                     />
                   }
                   label="Show"
+                  sx={{ color: "#ffffff", '& .MuiFormControlLabel-label': { fontSize: '0.875rem' } }}
                 />
               </Box>
 
               {showRecommendations && (
-                <Box sx={{ mb: 4 }}>
-                  <Grid container spacing={3}>
+                <Box sx={{ mb: 3 }}>
+                  <Grid container spacing={1.5}>
                     {recommendedProducts.slice(0, 4).map(product => (
                       <Grid item xs={12} sm={6} md={4} lg={3} key={`rec-${product._id}`}>
                         <ProductCard product={product} isRecommended={true} />
                       </Grid>
                     ))}
                   </Grid>
-                  <Divider sx={{ mt: 3, mb: 2 }} />
+                  <Divider sx={{ mt: 2, mb: 1.5, backgroundColor: "#1e3a5f", height: "1px" }} />
                 </Box>
               )}
             </>
           )}
 
           {/* Products Section */}
-          <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, mb: 2 }}>
+          <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, mb: 1.5, color: "#ffffff", fontSize: '1.1rem' }}>
             {filteredProducts.length} Product{filteredProducts.length !== 1 ? 's' : ''} Found
           </Typography>
 
           {loading ? (
             <LoadingSkeleton />
           ) : filteredProducts.length === 0 ? (
-            <Paper sx={{ p: 4, textAlign: 'center' }}>
-              <Typography variant="h6" color="text.secondary">
+            <Paper sx={{ 
+              p: 3, 
+              textAlign: 'center',
+              backgroundColor: "#0a1929",
+              border: "1px solid #1e3a5f",
+              borderRadius: "8px",
+              maxWidth: '400px',
+              mx: 'auto'
+            }}>
+              <Typography variant="body1" sx={{ color: "#9ca3af", mb: 1.5, fontSize: '0.9rem' }}>
                 No products found matching your criteria
               </Typography>
               <Button 
@@ -920,13 +1356,22 @@ function UserDashboard() {
                   setSearchTerm('');
                   setCategoryFilter('all');
                 }}
-                sx={{ mt: 2 }}
+                size="small"
+                sx={{ 
+                  color: "#ffffff",
+                  borderColor: "#dc2626",
+                  fontSize: '0.875rem',
+                  "&:hover": {
+                    borderColor: "#b91c1c",
+                    backgroundColor: "rgba(220, 38, 38, 0.1)"
+                  }
+                }}
               >
                 Clear Filters
               </Button>
             </Paper>
           ) : (
-            <Grid container spacing={3}>
+            <Grid container spacing={1.5}>
               {filteredProducts.map(product => (
                 <Grid item xs={12} sm={6} md={4} lg={3} key={product._id}>
                   <ProductCard product={product} />
@@ -936,157 +1381,74 @@ function UserDashboard() {
           )}
         </Container>
 
-        {/* Professional Cart Header */}
-        {isMobile && (
-          <Paper
-            elevation={3}
-            sx={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              zIndex: 1100,
-              p: 2,
-              backgroundColor: 'rgba(255, 255, 255, 0.95)',
-              backdropFilter: 'blur(10px)',
-              borderBottom: '1px solid rgba(0,0,0,0.1)'
-            }}
-          >
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                Professional Store
-              </Typography>
-              <Box sx={{ display: 'flex', gap: 1 }}>
-                <IconButton
-                  onClick={() => setPreferencesOpen(true)}
-                  sx={{
-                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                    '&:hover': { backgroundColor: 'rgba(102, 126, 234, 0.2)' }
-                  }}
-                >
-                  <SettingsIcon color="primary" />
-                </IconButton>
-                <Button
-                  variant="contained"
-                  onClick={() => setCartOpen(true)}
-                  sx={{
-                    background: 'linear-gradient(45deg, #667eea, #764ba2)',
-                    borderRadius: '20px',
-                    textTransform: 'none',
-                    fontWeight: 600,
-                    px: 3,
-                    boxShadow: '0 4px 15px rgba(102, 126, 234, 0.3)',
-                    '&:hover': {
-                      background: 'linear-gradient(45deg, #5a6fd8, #6a42a0)',
-                      boxShadow: '0 6px 20px rgba(102, 126, 234, 0.4)',
-                    }
-                  }}
-                  startIcon={
-                    <Badge 
-                      badgeContent={cartItemCount} 
-                      color="error"
-                      sx={{
-                        '& .MuiBadge-badge': {
-                          backgroundColor: '#FF4444',
-                          color: 'white',
-                          fontWeight: 'bold',
-                          fontSize: '0.7rem',
-                          minWidth: '18px',
-                          height: '18px',
-                          animation: cartItemCount > 0 ? 'pulse 2s infinite' : 'none',
-                          '@keyframes pulse': {
-                            '0%': { transform: 'scale(1)' },
-                            '50%': { transform: 'scale(1.1)' },
-                            '100%': { transform: 'scale(1)' }
-                          }
-                        }
-                      }}
-                    >
-                      <ShoppingCartIcon />
-                    </Badge>
-                  }
-                >
-                  Cart
-                </Button>
-              </Box>
-            </Box>
-          </Paper>
-        )}
-
-        {/* Floating Cart Button for Mobile */}
+        {/* Floating buttons */}
         {!isMobile && (
-          <Fab
-            color="primary"
-            sx={{
-              position: 'fixed',
-              bottom: 24,
-              right: 24,
-              zIndex: 1000,
-              width: 64,
-              height: 64,
-              background: 'linear-gradient(45deg, #FF6B6B, #FF8E53)',
-              boxShadow: '0 8px 25px rgba(255, 107, 107, 0.4)',
-              '&:hover': {
-                background: 'linear-gradient(45deg, #FF5252, #FF7043)',
-                boxShadow: '0 12px 35px rgba(255, 107, 107, 0.5)',
-                transform: 'translateY(-2px)'
-              },
-              transition: 'all 0.3s ease'
-            }}
-            onClick={() => setCartOpen(true)}
-          >
-            <Badge 
-              badgeContent={cartItemCount} 
-              color="warning"
+          <>
+            <Fab
               sx={{
-                '& .MuiBadge-badge': {
-                  backgroundColor: '#FFF',
-                  color: '#FF6B6B',
-                  fontWeight: 'bold',
-                  fontSize: '0.8rem',
-                  minWidth: '22px',
-                  height: '22px',
-                  border: '2px solid #FF6B6B',
-                  animation: cartItemCount > 0 ? 'bounce 1s ease-in-out infinite alternate' : 'none',
-                  '@keyframes bounce': {
-                    '0%': { transform: 'translateY(0px)' },
-                    '100%': { transform: 'translateY(-3px)' }
-                  }
-                }
+                position: 'fixed',
+                bottom: 16,
+                right: 16,
+                zIndex: 1000,
+                width: 52,
+                height: 52,
+                background: '#dc2626',
+                boxShadow: '0 4px 12px rgba(220, 38, 38, 0.5)',
+                border: "1px solid #ffffff",
+                '&:hover': {
+                  background: '#b91c1c',
+                  boxShadow: '0 6px 16px rgba(220, 38, 38, 0.6)',
+                  transform: 'translateY(-2px) scale(1.05)'
+                },
+                transition: 'all 0.3s ease'
               }}
+              onClick={() => setCartOpen(true)}
             >
-              <ShoppingCartIcon sx={{ fontSize: 28 }} />
-            </Badge>
-          </Fab>
-        )}
+              <Badge 
+                badgeContent={cartItemCount}
+                sx={{
+                  '& .MuiBadge-badge': {
+                    backgroundColor: '#000000',
+                    color: '#ffffff',
+                    fontWeight: 'bold',
+                    fontSize: '0.7rem',
+                    minWidth: '18px',
+                    height: '18px',
+                    border: '1px solid #dc2626'
+                  }
+                }}
+              >
+                <ShoppingCartIcon sx={{ fontSize: 22, color: "#ffffff" }} />
+              </Badge>
+            </Fab>
 
-        {/* Preferences Floating Button for Desktop */}
-        {!isMobile && (
-          <Fab
-            color="secondary"
-            sx={{
-              position: 'fixed',
-              bottom: 24,
-              right: 96,
-              zIndex: 1000,
-              width: 56,
-              height: 56,
-              background: 'linear-gradient(45deg, #667eea, #764ba2)',
-              boxShadow: '0 6px 20px rgba(102, 126, 234, 0.4)',
-              '&:hover': {
-                background: 'linear-gradient(45deg, #5a6fd8, #6a42a0)',
-                boxShadow: '0 8px 25px rgba(102, 126, 234, 0.5)',
-                transform: 'translateY(-2px)'
-              },
-              transition: 'all 0.3s ease'
-            }}
-            onClick={() => setPreferencesOpen(true)}
-          >
-            <SettingsIcon sx={{ fontSize: 24, color: 'white' }} />
-          </Fab>
+            <Fab
+              sx={{
+                position: 'fixed',
+                bottom: 16,
+                right: 76,
+                zIndex: 1000,
+                width: 44,
+                height: 44,
+                background: '#1e3a5f',
+                boxShadow: '0 4px 8px rgba(30, 58, 95, 0.5)',
+                border: "1px solid #ffffff",
+                '&:hover': {
+                  background: '#dc2626',
+                  boxShadow: '0 6px 12px rgba(220, 38, 38, 0.5)',
+                  transform: 'translateY(-2px) scale(1.05)'
+                },
+                transition: 'all 0.3s ease'
+              }}
+              onClick={() => setPreferencesOpen(true)}
+            >
+              <SettingsIcon sx={{ fontSize: 20, color: 'white' }} />
+            </Fab>
+          </>
         )}
       </Box>
 
+      {/* NOW PreferencesDialog IS DEFINED AND CAN BE USED */}
       <PreferencesDialog />
 
       <CartModal
@@ -1100,7 +1462,7 @@ function UserDashboard() {
       
       <ToastContainer 
         position="bottom-right"
-        theme="light"
+        theme="dark"
         autoClose={3000}
         hideProgressBar={false}
         newestOnTop
@@ -1109,8 +1471,15 @@ function UserDashboard() {
         pauseOnFocusLoss
         draggable
         pauseOnHover
+        toastStyle={{
+          backgroundColor: "#0a1929",
+          color: "#ffffff",
+          border: "1px solid #dc2626"
+        }}
       />
     </div>
+    <Footer />
+    </>
   );
 }
 

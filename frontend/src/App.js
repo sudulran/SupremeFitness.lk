@@ -7,11 +7,11 @@ import {
   useLocation,
 } from 'react-router-dom';
 
-// Page imports
+// Make sure these are all default exports in their respective files!
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Navbar from './components/Navbar';
-import AdminDashboard from './pages/AdminDashboard';
+import StoreAdminDashboard from './pages/StoreAdminDashboard';
 import UserDashboard from './pages/UserDashboard';
 import ProductManagement from './pages/ProductManagement';
 import PurchaseHistory from './pages/PurchaseHistory';
@@ -23,11 +23,7 @@ import Reviews from './pages/Reviews';
 import AppointmentManagement from './pages/AppointmentManagement';
 import MyAppointments from './pages/MyAppointments';
 import AdminReviews from './pages/AdminReviews';
-import CreateWorkoutPlan from './pages/CreateWorkoutPlan';
-import CreateMealPlan from './pages/CreateMealPlan';
-import HomePage from './pages/HomePage';
-import WorkoutPlansOverview from './pages/WorkoutPlansOverview';
-import MealPlansOverview from './pages/MealPlansOverview';
+import HomePage from './pages/HomePage'
 
 const AppRoutes = () => {
   const location = useLocation();
@@ -45,9 +41,9 @@ const AppRoutes = () => {
     setLoading(false);
   }, [location]);
 
-  const getPostAuthRoute = () => {
+  const getDashboardRoute = () => {
     if (userRole === 'admin') return '/admin-dashboard';
-    if (userRole === 'user') return '/';
+    if (userRole === 'user') return '/user-dashboard';
     return '/login';
   };
 
@@ -58,20 +54,31 @@ const AppRoutes = () => {
   return (
     <>
       <Navbar />
+      <div style={{ paddingTop: '60px' }}>
       <Routes>
-        <Route path="/" element={<HomePage />} />
-
+        <Route
+          path="/"
+          element={<HomePage />}
+        />
         <Route
           path="/login"
           element={
-            isAuthenticated ? <Navigate to={getPostAuthRoute()} /> : <Login />
+            isAuthenticated ? (
+              <Navigate to={getDashboardRoute()} />
+            ) : (
+              <Login />
+            )
           }
         />
 
         <Route
           path="/register"
           element={
-            isAuthenticated ? <Navigate to={getPostAuthRoute()} /> : <Register />
+            isAuthenticated ? (
+              <Navigate to={getDashboardRoute()} />
+            ) : (
+              <Register />
+            )
           }
         />
 
@@ -80,14 +87,14 @@ const AppRoutes = () => {
           path="/admin-dashboard"
           element={
             isAuthenticated && userRole === 'admin' ? (
-              <AdminDashboard />
+              <StoreAdminDashboard />
             ) : (
               <Navigate to="/login" />
             )
           }
         />
 
-        {/* User dashboard (optional) */}
+        {/* User only */}
         <Route
           path="/user-dashboard"
           element={
@@ -158,8 +165,7 @@ const AppRoutes = () => {
             )
           }
         />
-
-        {/* User Appointments */}
+        {/* Trainer - Time Slots Management - Admin only */}
         <Route
           path="/user-appointments"
           element={
@@ -170,7 +176,6 @@ const AppRoutes = () => {
             )
           }
         />
-
         <Route
           path="/user-rate-management/:username/:trainerId"
           element={
@@ -181,8 +186,7 @@ const AppRoutes = () => {
             )
           }
         />
-
-        <Route
+         <Route
           path="/admin-appointment-management"
           element={
             isAuthenticated && userRole === 'admin' ? (
@@ -212,50 +216,9 @@ const AppRoutes = () => {
             )
           }
         />
-        <Route
-          path="/admin/workout-plans"
-          element={
-            isAuthenticated && userRole === 'admin' ? (
-              <WorkoutPlansOverview />
-            ) : (
-              <Navigate to="/login" />
-            )
-          }
-        />
-        <Route
-          path="/admin/meal-plans"
-          element={
-            isAuthenticated && userRole === 'admin' ? (
-              <MealPlansOverview />
-            ) : (
-              <Navigate to="/login" />
-            )
-          }
-        />
-        <Route
-          path="/admin/workout-plans/create"
-          element={
-            isAuthenticated && userRole === 'admin' ? (
-              <CreateWorkoutPlan />
-            ) : (
-              <Navigate to="/login" />
-            )
-          }
-        />
-        <Route
-          path="/admin/meal-plans/create"
-          element={
-            isAuthenticated && userRole === 'admin' ? (
-              <CreateMealPlan />
-            ) : (
-              <Navigate to="/login" />
-            )
-          }
-        />
-
-        {/* Fallback */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        
       </Routes>
+      </div>
     </>
   );
 };

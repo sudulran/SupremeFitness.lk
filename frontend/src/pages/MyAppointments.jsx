@@ -57,6 +57,8 @@ import {
 
 import axiosInstance from '../api/axiosInstance';
 
+import Footer from '../components/Footer';
+
 // AppointmentCard with edit and delete
 function AppointmentCard({ appointment, onDelete, onEdit, index }) {
   const [deleteLoading, setDeleteLoading] = useState(false);
@@ -439,6 +441,7 @@ function MyAppointments() {
   }).length;
 
   return (
+    <>
     <Box
       sx={{
         minHeight: '100vh',
@@ -675,6 +678,8 @@ function MyAppointments() {
         onUpdated={handleUpdated}
       />
     </Box>
+    <Footer />
+    </>
   );
 }
 

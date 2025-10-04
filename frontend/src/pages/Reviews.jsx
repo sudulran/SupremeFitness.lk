@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api/axiosInstance';
 import Sentiment from 'sentiment';
+import Footer from '../components/Footer';
 
 // StarRating component
 const StarRating = ({ rating, setRating }) => (
@@ -150,8 +151,8 @@ function Reviews() {
   const getSentimentLabel = (comment) => {
     if (!comment) return 'Neutral';
     const result = sentimentAnalyzer.analyze(comment);
-    if (result.score > 0.2) return 'Positive';
-    if (result.score < -0.2) return 'Negative';
+    if (result.score > 0) return 'Positive';
+    if (result.score < 0) return 'Negative';
     return 'Neutral';
   };
 
@@ -162,6 +163,7 @@ function Reviews() {
   };
 
   return (
+    <>
     <div className="container my-4" style={{ maxWidth: 700 }}>
       <button className="btn btn-outline-secondary mb-3" onClick={() => navigate(-1)}>&larr; Back</button>
 
@@ -285,6 +287,8 @@ function Reviews() {
         </div>
       )}
     </div>
+    <Footer />
+    </>
   );
 }
 

@@ -49,7 +49,7 @@ const HomePage = () => {
                 Start Today
               </Link>
               <Link
-                to="/plans"
+                to="/workoutplans"
                 className="px-8 py-4 bg-transparent border-2 border-white text-white text-lg font-bold uppercase rounded-sm hover:bg-white hover:text-black transition-colors tracking-wider shadow-lg transform hover:-translate-y-1 hover:shadow-xl duration-300"
               >
                 View Plans

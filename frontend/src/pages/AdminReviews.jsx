@@ -25,6 +25,8 @@ import StoreAdminSidebar from '../components/StoreAdminSidebar';
 import axios from '../api/axiosInstance';
 import Sentiment from 'sentiment';
 
+import Footer from '../components/Footer';
+
 const sentiment = new Sentiment();
 
 function getSentimentType(score) {
@@ -136,6 +138,7 @@ function AdminReviews() {
   }, [selectedTrainer, sortOrder, reviews, sentimentFilter, searchText]);
 
   return (
+    <>
     <Box sx={{ display: 'flex' }}>
       <StoreAdminSidebar />
       <Box
@@ -328,6 +331,8 @@ function AdminReviews() {
         )}
       </Box>
     </Box>
+    <Footer />
+    </>
   );
 }
 
