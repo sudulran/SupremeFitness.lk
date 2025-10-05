@@ -426,7 +426,7 @@ function TrainerCard({ trainer, slots = [], onBook, onContact, onManageRating, i
   );
 }
 
-// Main appointments component with enhanced UI
+// Main appointments component
 export default function Appointments() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -543,7 +543,7 @@ export default function Appointments() {
     setBookingModalOpen(true);
   };
 
-  // Show trainer contact info in enhanced snackbar
+  // Show trainer contact info in snackbar
   const handleContact = (trainer) => {
     setSnackbar({
       open: true,
@@ -562,7 +562,7 @@ export default function Appointments() {
     }
   };
 
-  // Confirm booking handler with enhanced validation including date and phone
+  // Confirm booking handler with validation including date and phone
   const handleConfirmBooking = async () => {
     if (!clientName.trim()) {
       setSnackbar({ open: true, message: '⚠️ Please enter your name.', severity: 'warning' });
@@ -654,9 +654,9 @@ export default function Appointments() {
       />
 
       <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1, py: 4 }}>
-        {/* Enhanced header */}
+        {/* header */}
         <Fade in timeout={600}>
-          <Box sx={{ textAlign: 'center', mb: 6 }}>
+          <Box sx={{ textAlign: 'center', mb: 8 }}>
             <Typography
               variant="h3"
               fontWeight={800}
@@ -973,7 +973,7 @@ export default function Appointments() {
           </DialogActions>
         </Dialog>
 
-        {/* Enhanced snackbar notifications */}
+        {/* snackbar notifications */}
         <Snackbar
           open={snackbar.open}
           autoHideDuration={6000}
